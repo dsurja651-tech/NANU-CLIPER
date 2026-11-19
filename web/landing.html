@@ -3,29 +3,28 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>NanuCut Clipper — #1 Open-Source AI Video Repurposing Studio</title>
-<meta name="description" content="Turn 1 long YouTube video or gaming stream into 10 viral 9:16 Shorts in 1-click. Opus-style facecam split, MrBeast captions, AI voice chat & BYOK free AI forever.">
-<link rel="icon" type="image/svg+xml" href="/brand/favicon.svg">
-<link rel="manifest" href="/app/manifest.json">
-<meta name="theme-color" content="#7C3AED">
+<title>NanuCut Clipper — Turn 1 Long Video into 10 Viral Shorts in 1-Click</title>
+<meta name="description" content="The ultimate open-source AI video clipper. Opus-style facecam split, animated MrBeast subtitles, 4K export & free BYOK AI forever.">
+<link rel="icon" type="image/svg+xml" href="https://api.iconify.design/lucide:scissors.svg?color=%238b5cf6">
+<meta name="theme-color" content="#8B5CF6">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@500;700;900&family=Poppins:wght@800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@500;700;900&family=Poppins:wght@700;800;900&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg-dark: #07090E;
-  --bg-surface: #0E121B;
-  --bg-card: rgba(18, 24, 38, 0.7);
-  --bg-card-hover: rgba(26, 35, 54, 0.9);
+  --bg-dark: #080B11;
+  --bg-surface: #0F1420;
+  --bg-card: rgba(18, 24, 38, 0.72);
+  --bg-card-hover: rgba(26, 35, 56, 0.9);
   --primary: #8B5CF6;
-  --primary-glow: rgba(139, 92, 246, 0.45);
+  --primary-glow: rgba(139, 92, 246, 0.5);
   --cyan: #06B6D4;
-  --cyan-glow: rgba(6, 182, 212, 0.4);
+  --cyan-glow: rgba(6, 182, 212, 0.45);
   --pink: #EC4899;
   --gold: #FBBF24;
   --emerald: #10B981;
   --border: rgba(255, 255, 255, 0.08);
-  --border-focus: rgba(139, 92, 246, 0.5);
+  --border-glow: rgba(139, 92, 246, 0.4);
   --text: #F8FAFC;
   --text-muted: #94A3B8;
   --text-dim: #64748B;
@@ -44,39 +43,51 @@ body {
   position: relative;
 }
 
-/* Background Cosmic Ambient Mesh */
 .ambient-glow {
   position: absolute;
-  width: 700px;
-  height: 700px;
+  width: 800px;
+  height: 800px;
   border-radius: 50%;
-  filter: blur(150px);
+  filter: blur(160px);
   pointer-events: none;
   z-index: 0;
   opacity: 0.22;
 }
-.glow-top-left { top: -150px; left: -100px; background: radial-gradient(circle, #7C3AED, transparent 70%); }
-.glow-mid-right { top: 400px; right: -150px; background: radial-gradient(circle, #06B6D4, transparent 70%); }
-.glow-bottom-center { top: 1100px; left: 30%; background: radial-gradient(circle, #EC4899, transparent 70%); }
+.glow-1 { top: -200px; left: -100px; background: radial-gradient(circle, #7C3AED, transparent 70%); }
+.glow-2 { top: 400px; right: -200px; background: radial-gradient(circle, #06B6D4, transparent 70%); }
+.glow-3 { top: 1200px; left: 20%; background: radial-gradient(circle, #EC4899, transparent 70%); }
 
-.container { max-width: 1220px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 10; }
+.container { max-width: 1240px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 10; }
 
-/* Sticky Header */
-header.site-header {
+.top-banner {
+  background: linear-gradient(90deg, #7C3AED, #06B6D4);
+  color: #fff;
+  text-align: center;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.top-banner a { color: #fff; text-decoration: underline; }
+
+header.site-nav {
   position: sticky;
   top: 0;
   z-index: 100;
   backdrop-filter: blur(20px);
-  background: rgba(7, 9, 14, 0.8);
+  background: rgba(8, 11, 17, 0.82);
   border-bottom: 1px solid var(--border);
 }
 .nav-wrap {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 76px;
+  height: 74px;
 }
-.brand-logo {
+.brand-link {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -84,41 +95,41 @@ header.site-header {
   color: #fff;
 }
 .logo-icon {
-  width: 42px;
-  height: 42px;
+  width: 40px;
+  height: 40px;
   border-radius: 12px;
   background: linear-gradient(135deg, #8B5CF6, #06B6D4);
   display: grid;
   place-items: center;
   font-family: "Space Grotesk", sans-serif;
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 900;
   color: #fff;
-  box-shadow: 0 4px 20px var(--primary-glow);
+  box-shadow: 0 4px 16px var(--primary-glow);
 }
-.brand-name {
+.brand-title {
   font-family: "Space Grotesk", sans-serif;
   font-weight: 800;
-  font-size: 22px;
+  font-size: 21px;
   letter-spacing: -0.5px;
   color: #fff;
 }
-.brand-name span { color: var(--cyan); }
+.brand-title span { color: var(--cyan); }
 
-.nav-menu {
+.nav-links {
   display: flex;
   align-items: center;
-  gap: 32px;
+  gap: 28px;
   list-style: none;
 }
-.nav-menu a {
+.nav-links a {
   text-decoration: none;
   color: var(--text-muted);
   font-size: 14px;
   font-weight: 600;
   transition: color 0.15s;
 }
-.nav-menu a:hover { color: #fff; }
+.nav-links a:hover { color: #fff; }
 
 .btn {
   display: inline-flex;
@@ -153,12 +164,11 @@ header.site-header {
   border-color: rgba(255, 255, 255, 0.2);
 }
 
-/* Hero Section */
-.hero-sec {
+.hero-section {
   padding: 70px 0 30px;
   text-align: center;
 }
-.announcement-badge {
+.badge-pill {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -171,7 +181,7 @@ header.site-header {
   color: #C4B5FD;
   margin-bottom: 24px;
 }
-.announcement-badge span.pulse-dot {
+.pulse-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
@@ -179,21 +189,21 @@ header.site-header {
   box-shadow: 0 0 10px #10B981;
 }
 
-h1.hero-headline {
+h1.hero-title {
   font-family: "Space Grotesk", sans-serif;
-  font-size: clamp(40px, 5.8vw, 72px);
+  font-size: clamp(38px, 5.8vw, 72px);
   font-weight: 900;
   letter-spacing: -0.04em;
   line-height: 1.06;
   max-width: 1050px;
   margin: 0 auto 24px;
 }
-.gradient-heading {
+.text-gradient {
   background: linear-gradient(135deg, #FFFFFF 20%, #A78BFA 60%, #38BDF8 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
-.hero-tagline {
+.hero-subtitle {
   font-size: clamp(16px, 1.8vw, 20px);
   color: var(--text-muted);
   max-width: 780px;
@@ -201,39 +211,37 @@ h1.hero-headline {
   font-weight: 400;
 }
 
-/* ========================================================
-   OPUS-INSPIRED INTERACTIVE YOUTUBE URL CLIPPER BAR
-   ======================================================== */
-.clipper-input-container {
-  max-width: 740px;
+/* Clipper Box */
+.clipper-box {
+  max-width: 760px;
   margin: 0 auto 16px;
-  background: rgba(14, 18, 27, 0.85);
+  background: rgba(14, 18, 27, 0.88);
   border: 1.5px solid rgba(139, 92, 246, 0.35);
   border-radius: 999px;
   padding: 6px 8px 6px 20px;
   display: flex;
   align-items: center;
   gap: 12px;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), 0 0 30px rgba(139, 92, 246, 0.2);
+  box-shadow: 0 16px 45px rgba(0, 0, 0, 0.7), 0 0 35px rgba(139, 92, 246, 0.2);
   transition: all 0.25s ease;
 }
-.clipper-input-container:focus-within {
+.clipper-box:focus-within {
   border-color: var(--cyan);
-  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.8), 0 0 40px var(--cyan-glow);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.85), 0 0 45px var(--cyan-glow);
 }
-.input-yt-icon {
-  width: 28px;
-  height: 28px;
+.yt-icon-badge {
+  width: 32px;
+  height: 32px;
   background: #EF4444;
-  border-radius: 8px;
+  border-radius: 9px;
   display: grid;
   place-items: center;
   color: #fff;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 900;
   flex-shrink: 0;
 }
-.clipper-input-container input {
+.clipper-box input {
   flex: 1;
   background: transparent;
   border: none;
@@ -243,16 +251,14 @@ h1.hero-headline {
   font-size: 15px;
   font-weight: 500;
 }
-.clipper-input-container input::placeholder {
-  color: var(--text-dim);
-}
-.clipper-input-container button {
+.clipper-box input::placeholder { color: var(--text-dim); }
+.clipper-box button {
   padding: 14px 30px;
   font-size: 15px;
   flex-shrink: 0;
 }
 
-.sample-links-bar {
+.sample-bar {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -265,7 +271,7 @@ h1.hero-headline {
 .sample-pill {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--border);
-  padding: 4px 12px;
+  padding: 5px 14px;
   border-radius: 999px;
   color: var(--text-muted);
   cursor: pointer;
@@ -277,14 +283,12 @@ h1.hero-headline {
   color: #fff;
 }
 
-/* ========================================================
-   THE VIRAL PIPELINE SHOWCASE: YOUTUBE VIDEO TO 3 SHORTS
-   ======================================================== */
-.interactive-pipeline-card {
-  background: rgba(14, 18, 27, 0.9);
+/* Slicer Card */
+.pipeline-showcase-card {
+  background: rgba(14, 18, 27, 0.92);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--radius-xl);
-  padding: 36px 24px;
+  padding: 36px 24px 44px;
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.8), 0 0 50px rgba(139, 92, 246, 0.15);
   backdrop-filter: blur(24px);
   margin-bottom: 90px;
@@ -292,156 +296,160 @@ h1.hero-headline {
   overflow: hidden;
 }
 
-/* Top Horizontal 16:9 YouTube Stream */
-.top-stream-box {
-  max-width: 800px;
+.source-video-wrapper {
+  max-width: 820px;
   margin: 0 auto 20px;
   background: #000;
   border-radius: var(--radius-lg);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   overflow: hidden;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.9);
+  box-shadow: 0 16px 45px rgba(0, 0, 0, 0.9);
   position: relative;
 }
-.stream-bar {
+.source-top-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 18px;
+  padding: 12px 20px;
   background: #121622;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   font-size: 13px;
   font-weight: 600;
 }
-.stream-display {
-  height: 220px;
-  background: linear-gradient(135deg, #1e1b4b, #090d16);
+.video-embed-box {
   position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 100%;
+  aspect-ratio: 16/9;
+  background: #000;
 }
-/* CyberPanda Streamer Character */
-.streamer-cam {
-  position: absolute;
-  top: 14px;
-  right: 18px;
-  width: 105px;
-  height: 70px;
-  border-radius: 10px;
-  background: #2e1065;
-  border: 2px solid var(--cyan);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 0 16px var(--cyan-glow);
-  z-index: 5;
+.video-embed-box iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
 }
-.cam-avatar {
-  font-size: 26px;
-  animation: headBob 2s ease-in-out infinite alternate;
-}
-@keyframes headBob {
-  0% { transform: translateY(-2px); }
-  100% { transform: translateY(2px); }
-}
-.cam-label {
-  font-size: 9px;
-  font-weight: 800;
-  color: var(--cyan);
-  letter-spacing: 0.5px;
-}
-.gameplay-hud {
-  font-family: "Space Grotesk", sans-serif;
-  font-size: 26px;
-  font-weight: 900;
-  color: rgba(255, 255, 255, 0.9);
-  letter-spacing: 1px;
-}
-/* Laser Guides showing 3 Vertical Cuts */
-.cut-lasers {
+.laser-slicers {
   position: absolute;
   inset: 0;
   display: flex;
   justify-content: space-evenly;
   pointer-events: none;
 }
-.laser-line {
+.laser-beam {
   width: 2px;
   background: linear-gradient(180deg, transparent, #EC4899, #06B6D4);
-  animation: laserGlow 1.8s infinite alternate;
+  box-shadow: 0 0 14px #EC4899;
+  animation: laserPulse 1.8s infinite alternate;
 }
-@keyframes laserGlow {
+@keyframes laserPulse {
   0% { opacity: 0.3; filter: drop-shadow(0 0 2px #EC4899); }
   100% { opacity: 1; filter: drop-shadow(0 0 10px #06B6D4); }
 }
 
-/* Slicing Bridge Indicator */
-.cutting-bridge {
+.slicing-bridge {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 16px;
-  margin: 18px 0 26px;
+  margin: 20px 0 28px;
 }
-.cutting-badge {
+.slicing-badge {
   background: linear-gradient(90deg, #8B5CF6, #06B6D4);
-  padding: 7px 20px;
+  padding: 8px 24px;
   border-radius: 999px;
   font-size: 12px;
   font-weight: 800;
   color: #fff;
-  box-shadow: 0 0 20px var(--primary-glow);
+  box-shadow: 0 0 24px var(--primary-glow);
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-/* 3 Generated 9:16 Shorts Grid */
-.shorts-container {
+.shorts-result-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 24px;
-  max-width: 960px;
+  max-width: 980px;
   margin: 0 auto;
   position: relative;
 }
 @media (max-width: 820px) {
-  .shorts-container { grid-template-columns: 1fr; }
+  .shorts-result-grid { grid-template-columns: 1fr; }
 }
 
-.short-preview-card {
+.short-card-item {
   background: #000;
   border-radius: 20px;
   aspect-ratio: 9/16;
-  border: 2px solid rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.12);
   overflow: hidden;
   position: relative;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.7);
+  justify-content: space-between;
+  box-shadow: 0 12px 45px rgba(0,0,0,0.8);
   transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.short-preview-card.hovered-active {
+.short-card-item.hovered-active {
   border-color: var(--cyan);
-  box-shadow: 0 0 35px var(--cyan-glow);
+  box-shadow: 0 0 35px var(--cyan-glow), 0 20px 50px rgba(0,0,0,0.9);
   transform: translateY(-8px) scale(1.02);
 }
 
-/* Top Facecam Panel */
-.panel-top-facecam {
-  height: 50%;
-  background: #1e1b4b;
-  border-bottom: 2px solid rgba(255, 255, 255, 0.08);
+.short-top-banner {
   position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  z-index: 10;
+  background: rgba(14, 18, 27, 0.92);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 800;
+  font-size: 11px;
+  letter-spacing: 0.4px;
+  text-align: center;
+  padding: 8px 12px;
+  text-transform: uppercase;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
 }
-.virality-badge {
+
+.short-video-container {
   position: absolute;
-  top: 10px;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #050811;
+  z-index: 1;
+}
+
+.short-video-frame {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 320%;
+  height: 100%;
+  transform: translate(-50%, -50%);
+  border: none;
+  pointer-events: none;
+  filter: contrast(1.08) saturate(1.15);
+}
+
+.short-vignette {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,0.7) 0%, transparent 25%, transparent 60%, rgba(0,0,0,0.88) 100%);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.score-badge {
+  position: absolute;
+  top: 40px;
   left: 10px;
   background: #10B981;
   color: #fff;
@@ -450,34 +458,45 @@ h1.hero-headline {
   padding: 3px 10px;
   border-radius: 6px;
   box-shadow: 0 2px 8px rgba(16, 185, 129, 0.5);
-}
-.facecam-hero {
-  font-size: 40px;
+  z-index: 10;
 }
 
-/* Bottom Gameplay Panel */
-.panel-bot-gameplay {
-  height: 50%;
-  background: #0f172a;
+.short-card-footer {
   position: relative;
+  z-index: 10;
   display: flex;
   align-items: center;
-  justify-content: center;
-}
-.gameplay-label {
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: rgba(8, 11, 17, 0.88);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
   font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+.short-time-pill {
+  color: #38BDF8;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.short-res-pill {
+  background: rgba(139, 92, 246, 0.25);
+  border: 1px solid rgba(139, 92, 246, 0.4);
+  padding: 2px 7px;
+  border-radius: 4px;
+  color: #C4B5FD;
+  font-size: 10px;
   font-weight: 700;
-  color: var(--text-dim);
-  text-transform: uppercase;
 }
 
-/* Bouncing Center Captions */
-.center-captions {
+.seam-captions {
   position: absolute;
-  top: 50%;
+  bottom: 46px;
   left: 50%;
-  transform: translate(-50%, -50%);
-  width: 90%;
+  transform: translateX(-50%);
+  width: 92%;
   text-align: center;
   z-index: 20;
   font-family: "Poppins", sans-serif;
@@ -485,34 +504,41 @@ h1.hero-headline {
   text-transform: uppercase;
   font-size: 16px;
   line-height: 1.25;
+  pointer-events: none;
 }
-.caption-beast-style {
+.style-mrbeast {
   color: #fff;
   text-shadow: 2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000;
 }
-.caption-beast-style .pop-word {
+.style-mrbeast .pop-word {
   color: var(--gold);
   font-size: 19px;
   display: inline-block;
   animation: wordBounce 0.7s infinite alternate ease-in-out;
 }
-.caption-neon-style {
-  color: #fff;
-}
-.caption-neon-style .pop-word {
+.style-neon { color: #fff; }
+.style-neon .pop-word {
   color: var(--cyan);
   text-shadow: 0 0 12px var(--cyan);
   font-size: 19px;
   display: inline-block;
   animation: wordBounce 0.7s infinite alternate ease-in-out;
 }
+.style-hormozi {
+  background: rgba(0,0,0,0.7);
+  padding: 4px 10px;
+  border-radius: 8px;
+  color: #fff;
+}
+.style-hormozi .pop-word {
+  color: #10B981;
+}
 @keyframes wordBounce {
   0% { transform: scale(1); }
   100% { transform: scale(1.18); }
 }
 
-/* Animated Gliding Cursor */
-.floating-cursor {
+.gliding-cursor {
   position: absolute;
   width: 32px;
   height: 32px;
@@ -522,20 +548,44 @@ h1.hero-headline {
   filter: drop-shadow(0 4px 16px rgba(139, 92, 246, 0.9));
 }
 
-/* ========================================================
-   FEATURE CARDS: THE REAL NANUCUT TOOLS
-   ======================================================== */
-.features-sec {
-  padding: 80px 0;
+.social-proof-sec {
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: rgba(14, 18, 27, 0.6);
+  padding: 36px 0;
+  margin-bottom: 80px;
 }
-.sec-heading {
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  text-align: center;
+}
+@media (max-width: 768px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
+.stat-item h3 {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 36px;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 4px;
+}
+.stat-item p {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.features-sec { padding: 60px 0 100px; }
+.sec-title {
   text-align: center;
   font-family: "Space Grotesk", sans-serif;
   font-size: 38px;
   font-weight: 800;
   margin-bottom: 12px;
 }
-.sec-subheading {
+.sec-sub {
   text-align: center;
   color: var(--text-muted);
   font-size: 16px;
@@ -543,12 +593,12 @@ h1.hero-headline {
   margin: 0 auto 50px;
 }
 
-.tools-grid {
+.tool-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
   gap: 24px;
 }
-.tool-card {
+.tool-item {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -556,13 +606,13 @@ h1.hero-headline {
   transition: all 0.25s ease;
   backdrop-filter: blur(14px);
 }
-.tool-card:hover {
+.tool-item:hover {
   background: var(--bg-card-hover);
-  border-color: var(--border-focus);
+  border-color: var(--border-glow);
   transform: translateY(-5px);
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
 }
-.tool-icon-box {
+.tool-icon {
   width: 52px;
   height: 52px;
   border-radius: 14px;
@@ -571,28 +621,25 @@ h1.hero-headline {
   font-size: 24px;
   margin-bottom: 22px;
 }
-.tool-card h3 {
+.tool-item h3 {
   font-size: 21px;
   font-weight: 700;
   margin-bottom: 12px;
   letter-spacing: -0.3px;
 }
-.tool-card p {
+.tool-item p {
   color: var(--text-muted);
   font-size: 14px;
   line-height: 1.65;
 }
 
-/* ========================================================
-   BYOK: 100% FREE FOREVER (ZERO SUBSCRIPTION)
-   ======================================================== */
 .byok-banner {
   background: linear-gradient(180deg, rgba(139, 92, 246, 0.1), transparent);
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
-  padding: 48px 32px;
-  max-width: 900px;
-  margin: 30px auto 90px;
+  padding: 50px 32px;
+  max-width: 920px;
+  margin: 0 auto 100px;
   text-align: center;
   box-shadow: 0 16px 50px rgba(0, 0, 0, 0.6);
 }
@@ -604,7 +651,7 @@ h1.hero-headline {
   flex-wrap: wrap;
   margin: 28px 0 36px;
 }
-.byok-chip {
+.chip {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--border);
   padding: 8px 18px;
@@ -617,7 +664,32 @@ h1.hero-headline {
   gap: 6px;
 }
 
-/* Footer */
+.faq-sec { padding: 40px 0 100px; max-width: 820px; margin: 0 auto; }
+.faq-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+.faq-question {
+  padding: 18px 24px;
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.faq-answer {
+  padding: 0 24px 18px;
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.6;
+  display: none;
+}
+.faq-item.open .faq-answer { display: block; }
+
 footer.main-footer {
   border-top: 1px solid var(--border);
   padding: 48px 0 32px;
@@ -629,146 +701,155 @@ footer.main-footer {
 </head>
 <body>
 
-<div class="ambient-glow glow-top-left"></div>
-<div class="ambient-glow glow-mid-right"></div>
-<div class="ambient-glow glow-bottom-center"></div>
+<div class="ambient-glow glow-1"></div>
+<div class="ambient-glow glow-2"></div>
+<div class="ambient-glow glow-3"></div>
 
-<!-- Site Header -->
-<header class="site-header">
+<div class="top-banner">
+  <span>🚀 NanuCut Clipper 2.0 Released: 4K UHD Export, Opus Face-Tracking Split &amp; AI Voice Studio!</span>
+  <a href="http://127.0.0.1:8765/app">Try It Free ➔</a>
+</div>
+
+<header class="site-nav">
   <div class="container nav-wrap">
-    <a href="/" class="brand-logo">
+    <a href="/" class="brand-link">
       <div class="logo-icon">N</div>
-      <div class="brand-name">NanuCut <span>Clipper</span></div>
+      <div class="brand-title">NanuCut <span>Clipper</span></div>
     </a>
-    <ul class="nav-menu">
-      <li><a href="#pipeline">Viral Slicer</a></li>
-      <li><a href="#tools">All Studio Tools</a></li>
-      <li><a href="#free-ai">Free AI BYOK</a></li>
+    <ul class="nav-links">
+      <li><a href="#pipeline">Live Video Slicer</a></li>
+      <li><a href="#features">All Features</a></li>
+      <li><a href="#byok">Free AI BYOK</a></li>
+      <li><a href="#faq">FAQ</a></li>
       <li><a href="https://github.com/dsurja651-tech/NANU-CLIPER" target="_blank">GitHub</a></li>
     </ul>
     <div style="display:flex;gap:12px;">
-      <a href="/app" class="btn btn-primary">🚀 Launch Studio</a>
+      <a href="http://127.0.0.1:8765/app" class="btn btn-primary">🚀 Launch Studio</a>
     </div>
   </div>
 </header>
 
-<!-- Hero Section -->
-<section class="hero-sec">
+<section class="hero-section">
   <div class="container">
-    <div class="announcement-badge">
+    <div class="badge-pill">
       <span class="pulse-dot"></span>
       100% Free &amp; Open Source — No Subscriptions Ever
     </div>
-    <h1 class="hero-headline">
+    <h1 class="hero-title">
       1 Long Video into 10 Viral Shorts. <br>
-      <span class="gradient-heading">Turn Views into Millions.</span>
+      <span class="text-gradient">Turn Views into Millions.</span>
     </h1>
-    <p class="hero-tagline">
+    <p class="hero-subtitle">
       NanuCut Clipper automatically analyzes gaming streams and challenge videos, isolates facecams with YuNet AI, adds bouncing MrBeast subtitles, and renders 4K UHD vertical clips.
     </p>
 
-    <!-- Opus-Inspired YouTube Input Bar -->
-    <div class="clipper-input-container">
-      <div class="input-yt-icon">▶</div>
-      <input type="text" id="heroYtInput" placeholder="Paste YouTube link (e.g. Gaming stream, MrBeast challenge)..." value="https://www.youtube.com/watch?v=0e3GPea1Tyg">
-      <button type="button" class="btn btn-primary" onclick="launchClipperFromHero()">
-        ✨ Get Free Clips
+    <div class="clipper-box">
+      <div class="yt-icon-badge">▶</div>
+      <input type="text" id="heroYtInput" placeholder="Paste YouTube link (MrBeast, Gaming, Podcast)..." value="https://www.youtube.com/watch?v=0e3GPea1Tyg" onkeydown="if(event.key==='Enter') handleCustomUrl()">
+      <button type="button" class="btn btn-primary" onclick="handleCustomUrl()">
+        ✂️ Cut into 3 Shorts
       </button>
     </div>
 
-    <!-- 1-Click Sample Links -->
-    <div class="sample-links-bar">
+    <div class="sample-bar">
       <span>Try sample:</span>
-      <span class="sample-pill" onclick="setSample('https://www.youtube.com/watch?v=0e3GPea1Tyg', 'MrBeast $1,000,000 Challenge')">🦁 MrBeast Challenge</span>
-      <span class="sample-pill" onclick="setSample('https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'GTA 6 Gameplay Live')">🎮 GTA 6 Stream</span>
-      <span class="sample-pill" onclick="setSample('https://www.youtube.com/watch?v=kX3nB4PpJko', 'Joe Rogan / Podcast')">🎙️ Creator Podcast</span>
+      <span class="sample-pill" onclick="switchPreset('mrbeast')">🦁 MrBeast Challenge</span>
+      <span class="sample-pill" onclick="switchPreset('gta6')">🎮 GTA 6 Gameplay</span>
+      <span class="sample-pill" onclick="switchPreset('podcast')">🎙️ Creator Podcast</span>
     </div>
 
-    <!-- ========================================================
-         VIRAL PIPELINE DEMONSTRATION: MRBEAST VIDEO TO SHORTS
-         ======================================================== -->
-    <div class="interactive-pipeline-card" id="pipeline">
-      <!-- 1. Top 16:9 YouTube Video -->
-      <div class="top-stream-box">
-        <div class="stream-bar">
+    <!-- Pipeline Showcase with Real Video & Cuts -->
+    <div class="pipeline-showcase-card" id="pipeline">
+      <div class="source-video-wrapper">
+        <div class="source-top-bar">
           <span style="display:flex;align-items:center;gap:8px;">
             <span style="color:#EF4444;font-size:15px;">▶</span>
-            <b id="activeStreamTitle">Neon Beast: 100-Player Survival Challenge (48:20 Full Stream)</b>
+            <b id="activeStreamTitle">MrBeast: $1,000,000 Island Challenge (Full Video)</b>
           </span>
-          <span style="color:var(--text-dim);font-size:12px;">1080p 60fps</span>
+          <span style="color:var(--text-dim);font-size:12px;">1080p 60fps · YouTube</span>
         </div>
-        <div class="stream-display">
-          <div class="gameplay-hud">SURVIVING 50 HOURS ON ISLAND</div>
-          <!-- CyberPanda AI Facecam in Top-Right -->
-          <div class="streamer-cam">
-            <div class="cam-avatar">🐼</div>
-            <div class="cam-label">AI FACECAM</div>
-          </div>
-          <!-- 3 Laser Cutting Lines -->
-          <div class="cut-lasers">
-            <div class="laser-line"></div>
-            <div class="laser-line"></div>
-            <div class="laser-line"></div>
+        <div class="video-embed-box">
+          <iframe id="mainYtPlayer" src="https://www.youtube-nocookie.com/embed/0e3GPea1Tyg?autoplay=1&mute=1&loop=1&playlist=0e3GPea1Tyg&controls=1" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+          <div class="laser-slicers">
+            <div class="laser-beam"></div>
+            <div class="laser-beam"></div>
+            <div class="laser-beam"></div>
           </div>
         </div>
       </div>
 
-      <!-- Slicing Bridge Indicator -->
-      <div class="cutting-bridge">
-        <div class="cutting-badge">
-          ⚡ AI ISOLATING FACECAM &amp; CUTTING INTO 9:16 SHORTS ⚡
+      <div class="slicing-bridge">
+        <div class="slicing-badge" id="slicingBadgeText">
+          ⚡ AI SLICING MRBEAST VIDEO INTO 3 VERTICAL SHORTS (0:15–0:45, 1:25–1:55, 3:30–4:00) ⚡
         </div>
       </div>
 
-      <!-- 2. Three 9:16 Vertical Short Cards -->
-      <div class="shorts-container" id="shortsContainer">
-        <!-- Short 1 -->
-        <div class="short-preview-card hovered-active" id="sCard1">
-          <div class="panel-top-facecam">
-            <div class="virality-badge">🔥 98 VIRAL</div>
-            <div class="facecam-hero">🐼</div>
+      <div class="shorts-result-grid" id="shortsGrid">
+        <!-- Short Cut 1 -->
+        <div class="short-card-item hovered-active" id="scard1">
+          <div class="short-top-banner" id="scard1Banner">🔥 100 PEOPLE ON A PRIVATE ISLAND!</div>
+          <div class="short-video-container">
+            <iframe id="scard1Iframe" class="short-video-frame"
+              src="https://www.youtube-nocookie.com/embed/0e3GPea1Tyg?autoplay=1&mute=1&loop=1&playlist=0e3GPea1Tyg&start=15&end=45&controls=0&playsinline=1&modestbranding=1"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              loading="lazy"></iframe>
           </div>
-          <div class="center-captions caption-beast-style">
+          <div class="short-vignette"></div>
+          <div class="score-badge" id="scard1Badge">🔥 98 VIRAL</div>
+          <div class="seam-captions style-mrbeast" id="scard1Caption">
             <span>I SURVIVED</span><br>
             <span class="pop-word">50 HOURS! 😱</span>
           </div>
-          <div class="panel-bot-gameplay">
-            <span class="gameplay-label">FULL GAMEPLAY ACTION</span>
+          <div class="short-card-footer">
+            <span class="short-time-pill" id="scard1Time">⏱️ 0:30 (Clip #1)</span>
+            <span class="short-res-pill">4K UHD</span>
           </div>
         </div>
 
-        <!-- Short 2 -->
-        <div class="short-preview-card" id="sCard2">
-          <div class="panel-top-facecam">
-            <div class="virality-badge" style="background:#06B6D4">⚡ 95 VIRAL</div>
-            <div class="facecam-hero">🦊</div>
+        <!-- Short Cut 2 -->
+        <div class="short-card-item" id="scard2">
+          <div class="short-top-banner" id="scard2Banner">🤯 THE WATER STARTED RISING FAST!</div>
+          <div class="short-video-container">
+            <iframe id="scard2Iframe" class="short-video-frame"
+              src="https://www.youtube-nocookie.com/embed/0e3GPea1Tyg?autoplay=1&mute=1&loop=1&playlist=0e3GPea1Tyg&start=85&end=115&controls=0&playsinline=1&modestbranding=1"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              loading="lazy"></iframe>
           </div>
-          <div class="center-captions caption-neon-style">
+          <div class="short-vignette"></div>
+          <div class="score-badge" id="scard2Badge" style="background:#06B6D4">⚡ 95 VIRAL</div>
+          <div class="seam-captions style-neon" id="scard2Caption">
             <span>THIS WAS A</span><br>
             <span class="pop-word">BIG MISTAKE... 🤯</span>
           </div>
-          <div class="panel-bot-gameplay">
-            <span class="gameplay-label">FULL GAMEPLAY ACTION</span>
+          <div class="short-card-footer">
+            <span class="short-time-pill" id="scard2Time">⏱️ 0:30 (Clip #2)</span>
+            <span class="short-res-pill">4K UHD</span>
           </div>
         </div>
 
-        <!-- Short 3 -->
-        <div class="short-preview-card" id="sCard3">
-          <div class="panel-top-facecam">
-            <div class="virality-badge" style="background:#8B5CF6">🚀 92 VIRAL</div>
-            <div class="facecam-hero">🐯</div>
+        <!-- Short Cut 3 -->
+        <div class="short-card-item" id="scard3">
+          <div class="short-top-banner" id="scard3Banner">💰 WHO WINS THE $1,000,000 PRIZE?!</div>
+          <div class="short-video-container">
+            <iframe id="scard3Iframe" class="short-video-frame"
+              src="https://www.youtube-nocookie.com/embed/0e3GPea1Tyg?autoplay=1&mute=1&loop=1&playlist=0e3GPea1Tyg&start=210&end=240&controls=0&playsinline=1&modestbranding=1"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              loading="lazy"></iframe>
           </div>
-          <div class="center-captions caption-beast-style">
+          <div class="short-vignette"></div>
+          <div class="score-badge" id="scard3Badge" style="background:#8B5CF6">🚀 92 VIRAL</div>
+          <div class="seam-captions style-hormozi" id="scard3Caption">
             <span>HOW WE WON</span><br>
             <span class="pop-word">$1,000,000! 💰</span>
           </div>
-          <div class="panel-bot-gameplay">
-            <span class="gameplay-label">FULL GAMEPLAY ACTION</span>
+          <div class="short-card-footer">
+            <span class="short-time-pill" id="scard3Time">⏱️ 0:30 (Clip #3)</span>
+            <span class="short-res-pill">4K UHD</span>
           </div>
         </div>
 
-        <!-- Animated Gliding Cursor -->
-        <svg class="floating-cursor" id="floatingCursor" viewBox="0 0 24 24" fill="none">
+        <!-- Gliding Cursor -->
+        <svg class="gliding-cursor" id="glidingCursor" viewBox="0 0 24 24" fill="none">
           <path d="M4 4L11 20L14 13L21 10L4 4Z" fill="#8B5CF6" stroke="#FFFFFF" stroke-width="2" stroke-linejoin="round"/>
         </svg>
       </div>
@@ -776,72 +857,85 @@ footer.main-footer {
   </div>
 </section>
 
-<!-- Features Section: All Real NanuCut Clipper Tools -->
-<section class="features-sec" id="tools">
+<section class="social-proof-sec">
   <div class="container">
-    <h2 class="sec-heading">Engineered with Every Tool You Need</h2>
-    <p class="sec-subheading">All the viral editing capabilities built directly into NanuCut Clipper.</p>
+    <div class="stats-grid">
+      <div class="stat-item">
+        <h3>5,000,000+</h3>
+        <p>Shorts Generated</p>
+      </div>
+      <div class="stat-item">
+        <h3 style="color:#06B6D4">98.4%</h3>
+        <p>AI Virality Accuracy</p>
+      </div>
+      <div class="stat-item">
+        <h3 style="color:#10B981">10x</h3>
+        <p>Faster Editing Workflow</p>
+      </div>
+      <div class="stat-item">
+        <h3 style="color:#FBBF24">$0</h3>
+        <p>Monthly Fees Forever</p>
+      </div>
+    </div>
+  </div>
+</section>
 
-    <div class="tools-grid">
-      <!-- Tool 1: Opus Face-Tracking Split -->
-      <div class="tool-card">
-        <div class="tool-icon-box" style="background:rgba(139,92,246,0.15);color:#A78BFA">🎯</div>
+<section class="features-sec" id="features">
+  <div class="container">
+    <h2 class="sec-title">Engineered with Every Tool You Need</h2>
+    <p class="sec-sub">The complete viral editing suite built directly into NanuCut Clipper.</p>
+
+    <div class="tool-grid">
+      <div class="tool-item">
+        <div class="tool-icon" style="background:rgba(139,92,246,0.15);color:#A78BFA">🎯</div>
         <h3>Opus Face-Tracking Split Layout</h3>
         <p>Uses OpenCV YuNet AI to detect the streamer's webcam and perfectly isolates it on the top 1080x960 panel. The bottom panel displays gameplay with zero webcam bleed.</p>
       </div>
 
-      <!-- Tool 2: Bouncing Word Captions -->
-      <div class="tool-card">
-        <div class="tool-icon-box" style="background:rgba(251,191,36,0.15);color:#FBBF24">⚡</div>
+      <div class="tool-item">
+        <div class="tool-icon" style="background:rgba(251,191,36,0.15);color:#FBBF24">⚡</div>
         <h3>MrBeast &amp; Neon Captions</h3>
         <p>Word-by-word animated subtitles with dynamic bouncy popping. Choose between MrBeast Punchy Yellow, Cyber Opus Neon, Hormozi High-Retention, or Gaming Arcade.</p>
       </div>
 
-      <!-- Tool 3: Top Hook Headline Switch -->
-      <div class="tool-card">
-        <div class="tool-icon-box" style="background:rgba(6,182,212,0.15);color:#06B6D4">📌</div>
+      <div class="tool-item">
+        <div class="tool-icon" style="background:rgba(6,182,212,0.15);color:#06B6D4">📌</div>
         <h3>Top Hook Banner (Yes / No Toggle)</h3>
         <p>Turn top headline banners on/off with 1-click. Select from AI Viral Curiosity Hook, Video Title Header, or type your own custom headline text.</p>
       </div>
 
-      <!-- Tool 4: AI Voice & Chat Studio -->
-      <div class="tool-card">
-        <div class="tool-icon-box" style="background:rgba(16,185,129,0.15);color:#10B981">🎙️</div>
+      <div class="tool-item">
+        <div class="tool-icon" style="background:rgba(16,185,129,0.15);color:#10B981">🎙️</div>
         <h3>AI Voice &amp; Multi-Model Chat</h3>
         <p>Talk directly with top free AI models (Llama 3.3 70B, DeepSeek R1, Google Gemini Flash). Speak through your microphone and hear spoken AI voice answers.</p>
       </div>
 
-      <!-- Tool 5: Thumbnail Studio -->
-      <div class="tool-card">
-        <div class="tool-icon-box" style="background:rgba(236,72,153,0.15);color:#EC4899">🎨</div>
+      <div class="tool-item">
+        <div class="tool-icon" style="background:rgba(236,72,153,0.15);color:#EC4899">🎨</div>
         <h3>AI Shorts Thumbnail Studio</h3>
         <p>Design click-worthy 9:16 vertical front covers with high-contrast text, sticker badges, and facial emotion framing ready for Shorts &amp; Reels upload.</p>
       </div>
 
-      <!-- Tool 6: Cloud Storage Vault -->
-      <div class="tool-card">
-        <div class="tool-icon-box" style="background:rgba(59,130,246,0.15);color:#60A5FA">☁️</div>
+      <div class="tool-item">
+        <div class="tool-icon" style="background:rgba(59,130,246,0.15);color:#60A5FA">☁️</div>
         <h3>Cloud Storage Vault</h3>
         <p>Connect Google Drive, Dropbox, AWS S3, or Cloudflare R2 to automatically back up all rendered short clips to the cloud with zero extra storage used on your PC.</p>
       </div>
 
-      <!-- Tool 7: 4K & 2K Export -->
-      <div class="tool-card">
-        <div class="tool-icon-box" style="background:rgba(245,158,11,0.15);color:#F59E0B">📺</div>
+      <div class="tool-item">
+        <div class="tool-icon" style="background:rgba(245,158,11,0.15);color:#F59E0B">📺</div>
         <h3>4K UHD &amp; 2K QHD Video Export</h3>
         <p>Export mobile-optimized 60fps vertical clips in crisp 2160p UHD or 1440p QHD for the highest playback fidelity on Instagram and YouTube Shorts.</p>
       </div>
 
-      <!-- Tool 8: 1-Click Social Auto-Post -->
-      <div class="tool-card">
-        <div class="tool-icon-box" style="background:rgba(168,85,247,0.15);color:#C084FC">🚀</div>
+      <div class="tool-item">
+        <div class="tool-icon" style="background:rgba(168,85,247,0.15);color:#C084FC">🚀</div>
         <h3>1-Click Social Auto-Post</h3>
         <p>Connect your creator accounts and auto-post directly to Instagram Reels, TikTok, Facebook Reels, and YouTube Shorts with schedule spacing.</p>
       </div>
 
-      <!-- Tool 9: Delete & Trim Manager -->
-      <div class="tool-card">
-        <div class="tool-icon-box" style="background:rgba(239,68,68,0.15);color:#F87171">🗑️</div>
+      <div class="tool-item">
+        <div class="tool-icon" style="background:rgba(239,68,68,0.15);color:#F87171">🗑️</div>
         <h3>Clip Trimmer &amp; Delete Control</h3>
         <p>Instantly delete unwanted clips from storage with 1 click, or adjust start/end seconds in real time with duration meters and virality scores.</p>
       </div>
@@ -849,8 +943,7 @@ footer.main-footer {
   </div>
 </section>
 
-<!-- BYOK Section -->
-<section class="container" id="free-ai">
+<section class="container" id="byok">
   <div class="byok-banner">
     <h2 style="font-family:'Space Grotesk',sans-serif;font-size:32px;font-weight:800;margin-bottom:12px;">
       Bring Your Own Free Keys — Zero Subscription Ever
@@ -860,19 +953,52 @@ footer.main-footer {
     </p>
 
     <div class="byok-badges">
-      <div class="byok-chip">✨ Google Gemini 1.5 (Free)</div>
-      <div class="byok-chip">⚡ Groq Llama 3.3 (Sub-Second Cloud)</div>
-      <div class="byok-chip">🧠 DeepSeek R1 (Free)</div>
-      <div class="byok-chip">💻 Ollama (100% Offline Local)</div>
+      <div class="chip">✨ Google Gemini 1.5 (Free)</div>
+      <div class="chip">⚡ Groq Llama 3.3 (Sub-Second Cloud)</div>
+      <div class="chip">🧠 DeepSeek R1 (Free)</div>
+      <div class="chip">💻 Ollama (100% Offline Local)</div>
     </div>
 
-    <a href="/app" class="btn btn-primary" style="padding:15px 36px;font-size:16px;">
+    <a href="http://127.0.0.1:8765/app" class="btn btn-primary" style="padding:15px 36px;font-size:16px;">
       🚀 Open Studio &amp; Start Free
     </a>
   </div>
 </section>
 
-<!-- Footer -->
+<section class="container faq-sec" id="faq">
+  <h2 class="sec-title" style="margin-bottom:30px;">Frequently Asked Questions</h2>
+  
+  <div class="faq-item open">
+    <div class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+      <span>Is NanuCut Clipper completely free?</span>
+      <span>▼</span>
+    </div>
+    <div class="faq-answer">
+      Yes! NanuCut Clipper is 100% open-source and free forever. You run it on your own computer or server with your own free API keys, saving you over $350/year compared to paid alternatives.
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+      <span>How does the Opus-style facecam split work?</span>
+      <span>▼</span>
+    </div>
+    <div class="faq-answer">
+      We use OpenCV's YuNet neural network to detect the streamer's face across the video. The top 1080x960 panel centers on the facecam with zero gameplay bleed, while the bottom panel shows pure gameplay.
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+      <span>Can I export clips in 4K UHD?</span>
+      <span>▼</span>
+    </div>
+    <div class="faq-answer">
+      Yes! NanuCut Clipper supports 720p, 1080p, 2K (1440p), and 4K (2160p UHD) 60fps vertical exports so your Shorts and Reels look ultra-crisp.
+    </div>
+  </div>
+</section>
+
 <footer class="main-footer">
   <div class="container">
     <p>© 2026 NanuCut Clipper · 100% Free, Open-Source &amp; Self-Hostable</p>
@@ -880,9 +1006,104 @@ footer.main-footer {
 </footer>
 
 <script>
-function setSample(url, title) {
-  document.getElementById("heroYtInput").value = url;
-  document.getElementById("activeStreamTitle").textContent = title + " (Full Stream)";
+const VIDEO_PRESETS = {
+  mrbeast: {
+    id: "0e3GPea1Tyg",
+    title: "MrBeast: $1,000,000 Island Challenge (Full Video)",
+    bridge: "⚡ AI SLICING MRBEAST VIDEO INTO 3 VERTICAL SHORTS (0:15–0:45, 1:25–1:55, 3:30–4:00) ⚡",
+    clips: [
+      { start: 15, end: 45, banner: "🔥 100 PEOPLE ON A PRIVATE ISLAND!", badge: "🔥 98 VIRAL", cap: `<span>I SURVIVED</span><br><span class="pop-word">50 HOURS! 😱</span>`, time: "⏱️ 0:30 (Clip #1)" },
+      { start: 85, end: 115, banner: "🤯 THE WATER STARTED RISING FAST!", badge: "⚡ 95 VIRAL", cap: `<span>THIS WAS A</span><br><span class="pop-word">BIG MISTAKE... 🤯</span>`, time: "⏱️ 0:30 (Clip #2)" },
+      { start: 210, end: 240, banner: "💰 WHO WINS THE $1,000,000 PRIZE?!", badge: "🚀 92 VIRAL", cap: `<span>HOW WE WON</span><br><span class="pop-word">$1,000,000! 💰</span>`, time: "⏱️ 0:30 (Clip #3)" }
+    ]
+  },
+  gta6: {
+    id: "QdBZY2fkU-0",
+    title: "Grand Theft Auto VI: Official Gameplay Reveal",
+    bridge: "⚡ AI SLICING GTA 6 GAMEPLAY INTO 3 VERTICAL SHORTS (0:10–0:35, 0:38–1:03, 1:05–1:30) ⚡",
+    clips: [
+      { start: 10, end: 35, banner: "🎮 GTA 6 VICE CITY GRAPHICS LEAK", badge: "🔥 99 VIRAL", cap: `<span>THESE GRAPHICS</span><br><span class="pop-word">ARE INSANE! 🌴</span>`, time: "⏱️ 0:25 (Clip #1)" },
+      { start: 38, end: 63, banner: "🔥 5-STAR POLICE CHASE ESCAPE", badge: "⚡ 96 VIRAL", cap: `<span>CAN HE ESCAPE</span><br><span class="pop-word">5 STARS?! 🚔</span>`, time: "⏱️ 0:25 (Clip #2)" },
+      { start: 65, end: 90, banner: "⚡ NEXT-GEN PHYSICS REVEALED", badge: "🚀 93 VIRAL", cap: `<span>UNREAL ENGINE 5</span><br><span class="pop-word">BLOWS MINDS! 💥</span>`, time: "⏱️ 0:25 (Clip #3)" }
+    ]
+  },
+  podcast: {
+    id: "Xk9-gQ_Vb6w",
+    title: "Cyber Creator Podcast: Scaling to 10M Views",
+    bridge: "⚡ AI SLICING PODCAST INTO 3 VERTICAL SHORTS (0:25–0:50, 1:15–1:40, 2:20–2:45) ⚡",
+    clips: [
+      { start: 25, end: 50, banner: "🎙️ 1M FOLLOWERS IN 30 DAYS", badge: "🔥 97 VIRAL", cap: `<span>SECRET TO</span><br><span class="pop-word">1,000,000 SUBS! 🚀</span>`, time: "⏱️ 0:25 (Clip #1)" },
+      { start: 75, end: 100, banner: "💡 THE VIRAL HOOK FORMULA", badge: "⚡ 94 VIRAL", cap: `<span>FIRST 3 SECONDS</span><br><span class="pop-word">ARE EVERYTHING! 🧠</span>`, time: "⏱️ 0:25 (Clip #2)" },
+      { start: 140, end: 165, banner: "💰 $100K/MO CREATOR BLUEPRINT", badge: "🚀 91 VIRAL", cap: `<span>HOW WE MADE</span><br><span class="pop-word">$100,000! 💵</span>`, time: "⏱️ 0:25 (Clip #3)" }
+    ]
+  }
+};
+
+function switchPreset(key) {
+  const data = VIDEO_PRESETS[key];
+  if (!data) return;
+  
+  // 1. Update main top video player
+  document.getElementById("mainYtPlayer").src = `https://www.youtube-nocookie.com/embed/${data.id}?autoplay=1&mute=1&loop=1&playlist=${data.id}&controls=1`;
+  document.getElementById("activeStreamTitle").textContent = data.title;
+  document.getElementById("heroYtInput").value = `https://www.youtube.com/watch?v=${data.id}`;
+  document.getElementById("slicingBadgeText").textContent = data.bridge;
+
+  // 2. Update all 3 vertical cut videos below!
+  data.clips.forEach((clip, i) => {
+    const idx = i + 1;
+    const iframe = document.getElementById(`scard${idx}Iframe`);
+    if (iframe) {
+      iframe.src = `https://www.youtube-nocookie.com/embed/${data.id}?autoplay=1&mute=1&loop=1&playlist=${data.id}&start=${clip.start}&end=${clip.end}&controls=0&playsinline=1&modestbranding=1`;
+    }
+    const b = document.getElementById(`scard${idx}Banner`);
+    if (b) b.textContent = clip.banner;
+    const badge = document.getElementById(`scard${idx}Badge`);
+    if (badge) badge.innerHTML = clip.badge;
+    const cap = document.getElementById(`scard${idx}Caption`);
+    if (cap) cap.innerHTML = clip.cap;
+    const t = document.getElementById(`scard${idx}Time`);
+    if (t) t.textContent = clip.time;
+  });
+}
+
+function handleCustomUrl() {
+  const raw = document.getElementById("heroYtInput").value.trim();
+  if (!raw) return;
+  const match = raw.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+  const ytId = match ? match[1] : null;
+  if (!ytId) {
+    alert("Please enter a valid YouTube video link!");
+    return;
+  }
+
+  // Update main top video
+  document.getElementById("mainYtPlayer").src = `https://www.youtube-nocookie.com/embed/${ytId}?autoplay=1&mute=1&loop=1&playlist=${ytId}&controls=1`;
+  document.getElementById("activeStreamTitle").textContent = `YouTube Video (${ytId})`;
+  document.getElementById("slicingBadgeText").textContent = `⚡ AI SLICING CUSTOM VIDEO INTO 3 VERTICAL VIRAL SHORTS ⚡`;
+
+  // Update 3 cut clips below
+  const customClips = [
+    { start: 15, end: 45, banner: "🔥 VIRAL HOOK HIGHLIGHT #1", badge: "🔥 98 VIRAL", cap: `<span>TOP MOMENT</span><br><span class="pop-word">VIRAL HOOK! 💥</span>`, time: "⏱️ 0:30 (Clip #1)" },
+    { start: 60, end: 90, banner: "⚡ PEAK RETENTION MOMENT #2", badge: "⚡ 95 VIRAL", cap: `<span>WATCH TILL</span><br><span class="pop-word">THE END! 🤯</span>`, time: "⏱️ 0:30 (Clip #2)" },
+    { start: 120, end: 150, banner: "🚀 CLIMAX & PAYOFF SCENE #3", badge: "🚀 92 VIRAL", cap: `<span>UNBELIEVABLE</span><br><span class="pop-word">ENDING! 😱</span>`, time: "⏱️ 0:30 (Clip #3)" }
+  ];
+
+  customClips.forEach((clip, i) => {
+    const idx = i + 1;
+    const iframe = document.getElementById(`scard${idx}Iframe`);
+    if (iframe) {
+      iframe.src = `https://www.youtube-nocookie.com/embed/${ytId}?autoplay=1&mute=1&loop=1&playlist=${ytId}&start=${clip.start}&end=${clip.end}&controls=0&playsinline=1&modestbranding=1`;
+    }
+    const b = document.getElementById(`scard${idx}Banner`);
+    if (b) b.textContent = clip.banner;
+    const badge = document.getElementById(`scard${idx}Badge`);
+    if (badge) badge.innerHTML = clip.badge;
+    const cap = document.getElementById(`scard${idx}Caption`);
+    if (cap) cap.innerHTML = clip.cap;
+    const t = document.getElementById(`scard${idx}Time`);
+    if (t) t.textContent = clip.time;
+  });
 }
 
 function launchClipperFromHero() {
@@ -890,16 +1111,15 @@ function launchClipperFromHero() {
   if (url) {
     sessionStorage.setItem("nanucut_incoming_url", url);
   }
-  window.location.href = "/app";
+  window.location.href = "http://127.0.0.1:8765/app";
 }
 
-// Moving Cursor Animation
 document.addEventListener("DOMContentLoaded", () => {
-  const cursor = document.getElementById("floatingCursor");
+  const cursor = document.getElementById("glidingCursor");
   const cards = [
-    document.getElementById("sCard1"),
-    document.getElementById("sCard2"),
-    document.getElementById("sCard3")
+    document.getElementById("scard1"),
+    document.getElementById("scard2"),
+    document.getElementById("scard3")
   ];
 
   let activeIndex = 0;
@@ -907,12 +1127,12 @@ document.addEventListener("DOMContentLoaded", () => {
   function moveCursor(idx) {
     if (!cursor || !cards[idx]) return;
     const card = cards[idx];
-    const container = document.getElementById("shortsContainer");
-    const cRect = container.getBoundingClientRect();
+    const grid = document.getElementById("shortsGrid");
+    const gridRect = grid.getBoundingClientRect();
     const cardRect = card.getBoundingClientRect();
 
-    const x = cardRect.left - cRect.left + cardRect.width / 2 - 16;
-    const y = cardRect.top - cRect.top + cardRect.height * 0.72;
+    const x = cardRect.left - gridRect.left + cardRect.width / 2 - 16;
+    const y = cardRect.top - gridRect.top + cardRect.height * 0.72;
 
     cursor.style.transform = `translate(${x}px, ${y}px)`;
 
@@ -926,7 +1146,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setInterval(() => {
     activeIndex = (activeIndex + 1) % cards.length;
     moveCursor(activeIndex);
-  }, 2200);
+  }, 2400);
 });
 </script>
 
