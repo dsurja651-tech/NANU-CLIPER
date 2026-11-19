@@ -239,21 +239,27 @@ PIP_W = 380            # how wide the facecam is in the 1080-wide frame
 PIP_MARGIN = 26
 
 
-def _filter(layout, fg_h, facecam=None):
+def _filter(layout, fg_h, facecam=None, src_w=1920, src_h=1080):
     if layout == "split":
-        # Facecam on top (0 to 960), Gameplay on bottom (960 to 1920)
-        # Word-by-word captions are placed right in between at seam (960)
+        # Top panel: ONLY Facecam (1080x960)
+        # Bottom panel: ONLY Gameplay (1080x960) - completely cutting out the facecam!
+        # Middle: Captions placed at y=960
         if facecam:
             fx, fy, fw, fh = (int(v) for v in facecam)
             if fw > 8 and fh > 8:
-                return (f"[0:v]fps={config.OUT_FPS},split=2[base][fc];"
-                        f"[fc]crop={fw}:{fh}:{fx}:{fy},scale={W}:960:force_original_aspect_ratio=increase,crop={W}:960,setsar=1[top];"
-                        f"[base]scale={W}:960:force_original_aspect_ratio=increase,crop={W}:960,setsar=1[bot];"
-                        f"[top][bot]vstack=inputs=2[v0];")
-        # Fallback if no facecam detected: upper crop for face and center-lower crop for gameplay
+                fc_filter = f"[fc]crop={fw}:{fh}:{fx}:{fy},scale={W}:960:force_original_aspect_ratio=increase,crop={W}:960,setsar=1[top];"
+                gw = min(src_w, int(round(src_h * 1080 / 960)))
+                gh = src_h
+                fc_center_x = fx + fw / 2
+                if fc_center_x < src_w / 2:
+                    gx = max(0, src_w - gw)
+                else:
+                    gx = 0
+                game_filter = f"[base]crop={gw}:{gh}:{gx}:0,scale={W}:960:force_original_aspect_ratio=increase,crop={W}:960,setsar=1[bot];"
+                return f"[0:v]fps={config.OUT_FPS},split=2[base][fc];{fc_filter}{game_filter}[top][bot]vstack=inputs=2[v0];"
         return (f"[0:v]fps={config.OUT_FPS},split=2[t_raw][b_raw];"
                 f"[t_raw]scale={W}:960:force_original_aspect_ratio=increase,crop={W}:960:0:0,setsar=1[top];"
-                f"[b_raw]scale={W}:960:force_original_aspect_ratio=increase,crop={W}:960:(in_w-out_w)/2:(in_h-out_h)/2,setsar=1[bot];"
+                f"[b_raw]scale={W}:960:force_original_aspect_ratio=increase,crop={W}:960:(in_w-out_w)/2:in_h-960,setsar=1[bot];"
                 f"[top][bot]vstack=inputs=2[v0];")
     if layout == "gameplay" and facecam:
         # The game fills the screen, and the webcam sits in the top corner of it, so a viewer sees
@@ -303,18 +309,18 @@ def render_clip(src: Path, out_dir: Path, name: str, clip: dict, words: list, sr
     # break the filter syntax).
     work = Path(tempfile.mkdtemp(prefix="pk"))
     try:
-        return _render_in(work, src, out_dir, name, start, end, layout, fg_h, ass, face=face)
+        return _render_in(work, src, out_dir, name, start, end, layout, fg_h, ass, face=face, src_w=src_w, src_h=src_h)
     finally:
         shutil.rmtree(work, ignore_errors=True)
 
 
-def _render_in(work: Path, src: Path, out_dir: Path, name: str, start, end, layout, fg_h, ass: str, face=None) -> dict:
+def _render_in(work: Path, src: Path, out_dir: Path, name: str, start, end, layout, fg_h, ass: str, face=None, src_w=1920, src_h=1080) -> dict:
     global _qsv_ok
     (work / f"{name}.ass").write_text(ass, encoding="utf-8")
     (work / "f").mkdir()
     for f in config.FONTS_DIR.glob("*.ttf"):
         shutil.copyfile(f, work / "f" / f.name)
-    fc = _filter(layout, fg_h, face) + f"[v0]ass={name}.ass:fontsdir=f[v]"
+    fc = _filter(layout, fg_h, face, src_w=src_w, src_h=src_h) + f"[v0]ass={name}.ass:fontsdir=f[v]"
     base = ["ffmpeg", "-y", "-v", "error", "-ss", f"{start:.2f}", "-t", f"{end - start:.2f}", "-i", str(src),
             "-filter_complex", fc, "-map", "[v]", "-map", "0:a:0", "-af", "loudnorm=I=-14:TP=-1.5:LRA=11",
             "-c:a", "aac", "-b:a", "160k", "-ar", "48000", "-movflags", "+faststart", "-pix_fmt"]
