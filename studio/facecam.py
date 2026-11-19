@@ -380,10 +380,10 @@ def detect_face_box(path: str | Path) -> list | None:
         total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT) or 100)
         w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH) or 1920)
         h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT) or 1080)
-        detector = cv2.FaceDetectorYN.create(str(yunet_path), "", (w, h), 0.5)
+        detector = cv2.FaceDetectorYN.create(str(yunet_path), "", (w, h), 0.35)
 
         face_boxes = []
-        for step in [0.15, 0.35, 0.55, 0.75]:
+        for step in [0.08, 0.18, 0.28, 0.38, 0.48, 0.58, 0.68, 0.78, 0.88]:
             cap.set(cv2.CAP_PROP_POS_FRAMES, int(total_frames * step))
             ret, frame = cap.read()
             if not ret or frame is None:
@@ -392,21 +392,24 @@ def detect_face_box(path: str | Path) -> list | None:
             _, faces = detector.detect(frame)
             if faces is not None and len(faces) > 0:
                 for f in faces:
-                    fx, fy, fw, fh = int(f[0]), int(f[1]), int(f[2]), int(f[3])
-                    pad_w = int(fw * 0.4)
-                    pad_h = int(fh * 0.4)
-                    cx = max(0, fx - pad_w)
-                    cy = max(0, fy - pad_h)
-                    cw = min(w - cx, fw + pad_w * 2)
-                    ch = min(h - cy, fh + pad_h * 2)
-                    face_boxes.append((cx, cy, cw, ch))
+                    score = float(f[-1])
+                    fw, fh = int(f[2]), int(f[3])
+                    # Streamer facecam is high confidence and substantial size
+                    if score >= 0.70 and fw >= 50 and fh >= 50:
+                        face_boxes.append((int(f[0]), int(f[1]), fw, fh))
         cap.release()
-        if face_boxes:
-            avg_x = int(sum(b[0] for b in face_boxes) / len(face_boxes))
-            avg_y = int(sum(b[1] for b in face_boxes) / len(face_boxes))
-            avg_w = int(sum(b[2] for b in face_boxes) / len(face_boxes))
-            avg_h = int(sum(b[3] for b in face_boxes) / len(face_boxes))
-            return [avg_x, avg_y, avg_w, avg_h]
+        if not face_boxes:
+            return None
+        # Group and filter outliers: find the cluster in the streamer's corner
+        med_x = sorted(b[0] for b in face_boxes)[len(face_boxes) // 2]
+        med_y = sorted(b[1] for b in face_boxes)[len(face_boxes) // 2]
+        consistent = [b for b in face_boxes if abs(b[0] - med_x) < w * 0.15 and abs(b[1] - med_y) < h * 0.15]
+        targets = consistent if consistent else face_boxes
+        avg_x = int(sum(b[0] for b in targets) / len(targets))
+        avg_y = int(sum(b[1] for b in targets) / len(targets))
+        avg_w = int(sum(b[2] for b in targets) / len(targets))
+        avg_h = int(sum(b[3] for b in targets) / len(targets))
+        return [avg_x, avg_y, avg_w, avg_h]
     except Exception:
         pass
     return None

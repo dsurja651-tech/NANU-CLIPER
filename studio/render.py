@@ -12,6 +12,8 @@ W, H = config.OUT_W, config.OUT_H
 
 # ASS colours are &HBBGGRR. `size` is the ASS font size (line height); _Font turns it into real pixels.
 STYLES = {
+    "opus": {"label": "Opus Clip (Neon)", "font": "Poppins ExtraBold", "size": 136, "base": "FFFFFF", "active": "00FF66",
+             "strong": "00FFFF", "outline": 8, "pop": 120, "upper": True, "per": 3},
     "bounce": {"label": "Bounce", "font": "Poppins ExtraBold", "size": 132, "base": "FFFFFF", "active": "00F0FF",
                "strong": "FFFFFF", "outline": 7, "pop": 112, "upper": True, "per": 3},
     "hype": {"label": "Hype", "font": "Anton", "size": 152, "base": "FFFFFF", "active": "3C3CFF",
@@ -164,7 +166,7 @@ def _hook_events(hook, dur, y):
 
 
 def build_ass(words, start, end, hook, style_name, highlight, hook_y, cap_y) -> str:
-    st = STYLES.get(style_name, STYLES["bounce"])
+    st = STYLES.get(style_name, STYLES["opus"])
     words = [dict(w, s=w["s"] - CAPTION_LEAD, e=w["e"] - CAPTION_LEAD) for w in words]
     strong = {_key(h) for h in highlight if _key(h)}
     head = f"""[Script Info]
@@ -244,17 +246,27 @@ def _filter(layout, fg_h, facecam=None, src_w=1920, src_h=1080):
         # Top panel: ONLY Facecam (1080x960)
         # Bottom panel: ONLY Gameplay (1080x960) - completely cutting out the facecam!
         # Middle: Captions placed at y=960
-        if facecam:
+        if facecam and len(facecam) == 4:
             fx, fy, fw, fh = (int(v) for v in facecam)
             if fw > 8 and fh > 8:
-                fc_filter = f"[fc]crop={fw}:{fh}:{fx}:{fy},scale={W}:960:force_original_aspect_ratio=increase,crop={W}:960,setsar=1[top];"
+                cx = fx + fw / 2
+                cy = fy + fh / 2
+                crop_h = min(src_h, max(int(fh * 2.8), int(fw * 2.8 * 960 / 1080)))
+                crop_w = int(round(crop_h * 1080 / 960))
+                if crop_w > src_w:
+                    crop_w = src_w
+                    crop_h = int(round(crop_w * 960 / 1080))
+                top_x = max(0, min(src_w - crop_w, int(round(cx - crop_w / 2))))
+                top_y = max(0, min(src_h - crop_h, int(round(cy - crop_h / 2))))
+
                 gw = min(src_w, int(round(src_h * 1080 / 960)))
                 gh = src_h
-                fc_center_x = fx + fw / 2
-                if fc_center_x < src_w / 2:
-                    gx = max(0, src_w - gw)
+                if cx >= src_w / 2:
+                    gx = 0  # Face is on right -> crop gameplay from far left
                 else:
-                    gx = 0
+                    gx = max(0, src_w - gw)  # Face is on left -> crop gameplay from far right
+
+                fc_filter = f"[fc]crop={crop_w}:{crop_h}:{top_x}:{top_y},scale={W}:960:force_original_aspect_ratio=increase,crop={W}:960,setsar=1[top];"
                 game_filter = f"[base]crop={gw}:{gh}:{gx}:0,scale={W}:960:force_original_aspect_ratio=increase,crop={W}:960,setsar=1[bot];"
                 return f"[0:v]fps={config.OUT_FPS},split=2[base][fc];{fc_filter}{game_filter}[top][bot]vstack=inputs=2[v0];"
         return (f"[0:v]fps={config.OUT_FPS},split=2[t_raw][b_raw];"
@@ -298,10 +310,22 @@ def render_clip(src: Path, out_dir: Path, name: str, clip: dict, words: list, sr
     start, end = clip["start"], clip["end"]
     layout, fg_h, hook_y, cap_y = geometry(src_w, src_h, clip.get("layout", "blur"))
     face = clip.get("facecam")
+    if (layout in ("split", "gameplay")) and not (face and len(face) == 4):
+        try:
+            from . import facecam as fc_mod
+            face = fc_mod.detect_face_box(src)
+            if not face:
+                b = fc_mod.detect(src)
+                if b and b.get("conf") == "high":
+                    face = [b["x"], b["y"], b["w"], b["h"]]
+            if face:
+                clip["facecam"] = face
+        except Exception:
+            pass
     if layout == "gameplay" and not (face and len(face) == 4):
         layout = "crop"     # no webcam found: the game fills the screen, which is still the right shape
     hook_y = _hook_y(layout, hook_y, face)
-    ass = build_ass(words if clip.get("captions", True) else [], start, end, clip.get("hook", ""), clip.get("style", "bounce"),
+    ass = build_ass(words if clip.get("captions", True) else [], start, end, clip.get("hook", ""), clip.get("style", "opus"),
                     clip.get("highlight_words", []), hook_y, cap_y)
     # The clip is made in a short work folder and moved into place afterwards. The caption step of ffmpeg cannot
     # open files whose full path is longer than 260 characters on Windows, which a data folder deep inside other

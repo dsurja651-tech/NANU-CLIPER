@@ -381,6 +381,18 @@ def render_one(job, clip, words):
         src = Path(clip["src"]) if clip.get("src") else Path(job["source_path"])
         if not clip.get("src"):
             clip["end"] = min(clip["end"], job["duration"])
+        if clip.get("layout") in ("split", "gameplay") and not clip.get("facecam"):
+            if job.get("facecam"):
+                clip["facecam"] = job["facecam"]
+            else:
+                f = facecam.detect_face_box(src)
+                if not f:
+                    b = facecam.detect(src, ask=brain.look_for_facecam)
+                    if b and b.get("conf") == "high":
+                        f = [b["x"], b["y"], b["w"], b["h"]]
+                if f:
+                    clip["facecam"] = f
+                    job["facecam"] = f
         local = dict(clip, start=clip["start"] - off, end=clip["end"] - off, hook=roman.to_roman(clip.get("hook") or ""))
         near = _caption_words(job, clip, words, off) if clip.get("captions", True) else []
         out = render.render_clip(src, d / "clips", clip["id"], local, near, job["width"], job["height"])
@@ -526,7 +538,12 @@ def _covers(words: list, start: float, end: float) -> bool:
 def _facecam(job) -> list | None:
     path = job.get("source_path")
     if not path or not Path(path).is_file():
-        return None
+        d = Path(job.get("dir", ""))
+        candidates = list(d.glob("*.mp4")) if d.is_dir() else []
+        if candidates:
+            path = str(candidates[0])
+        else:
+            return None
     try:
         tight_face = facecam.detect_face_box(path)
         if tight_face:
@@ -536,12 +553,12 @@ def _facecam(job) -> list | None:
         pass
     try:
         box = facecam.detect(path, ask=brain.look_for_facecam)
+        if box and box.get("conf") == "high":
+            job["facecam"] = [box["x"], box["y"], box["w"], box["h"]]
+            return job["facecam"]
     except Exception:  # noqa: BLE001 - a missing facecam is not a failure
         return None
-    if not box or box.get("conf") != "high":
-        return None
-    job["facecam"] = [box["x"], box["y"], box["w"], box["h"]]
-    return job["facecam"]
+    return None
 
 
 def _run_job(job):
@@ -635,6 +652,10 @@ def _run_job(job):
                 if path:
                     info = media.probe(path)
                     job.update(source_path=str(path), width=info["width"], height=info["height"])
+                    if not job.get("facecam"):
+                        f = _facecam(job)
+                        if f:
+                            job["facecam"] = f
                 vstate["path"] = path
             return vstate["path"]
 
@@ -646,6 +667,13 @@ def _run_job(job):
         began[clip["id"]] = time.time()
         if src["type"] == "url" and (pieces or not whole_video()):
             _fetch_piece(job, clip, audio)
+        if clip.get("layout") in ("split", "gameplay") and not clip.get("facecam"):
+            if job.get("facecam"):
+                clip["facecam"] = job["facecam"]
+            else:
+                f = _facecam(job)
+                if f:
+                    clip["facecam"] = f
         if clip["status"] != "error" and clip.get("captions", True) and yt and yt[1].lower().startswith("en"):
             # The clip was found with YouTube's transcript. What is shown on screen comes from our own model,
             # run on just this clip: full punctuation, nothing blanked out, timings to the word.
