@@ -1,3 +1,13 @@
+---
+title: NanuCut Clipper
+emoji: ✂️
+colorFrom: purple
+colorTo: blue
+sdk: docker
+pinned: false
+app_port: 8765
+---
+
 # NanuCut Clipper
 
 Turn long videos and live streams into captioned vertical clips, ready to post. Free and open source: run it on your own computer or server, with your own AI key.
