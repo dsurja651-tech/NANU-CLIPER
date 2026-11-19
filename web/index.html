@@ -1476,6 +1476,31 @@ function drawAdd(variant) {
         <button type="button" data-seg="o_quality" data-v="1080" aria-pressed="true">1080p<small>Full HD</small></button>
         <button type="button" data-seg="o_quality" data-v="1440" aria-pressed="false">2K<small>QHD Ultra</small></button>
         <button type="button" data-seg="o_quality" data-v="2160" aria-pressed="false">4K<small>Cinematic UHD</small></button></div></div>
+
+      <div class="ob wide" id="ob_top_text_box">
+        <div class="ot cap-head">
+          <span style="font-weight:700;display:flex;align-items:center;gap:6px;">
+            <span>📌 Top Big Text / Headline Banner</span>
+          </span>
+          <label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;font-weight:600;">
+            <input type="checkbox" id="o_toptext_toggle" checked onchange="window.toggleTopText && window.toggleTopText(this.checked)">
+            <span>Add Top Big Text: <b id="toptext_status_label" style="color:#10B981">YES (ON)</b></span>
+          </label>
+        </div>
+        <div id="toptext_controls_wrap">
+          <input type="hidden" id="o_toptext_mode" value="viral_hook">
+          <div class="seg" role="group" aria-label="Top headline mode" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:6px;">
+            <button type="button" data-seg="o_toptext_mode" data-v="viral_hook" aria-pressed="true" onclick="window.selectTopTextMode && window.selectTopTextMode('viral_hook')">🔥 AI Viral Hook<small>Punchy Headline</small></button>
+            <button type="button" data-seg="o_toptext_mode" data-v="video_title" aria-pressed="false" onclick="window.selectTopTextMode && window.selectTopTextMode('video_title')">📌 Video Title<small>Original Topic</small></button>
+            <button type="button" data-seg="o_toptext_mode" data-v="custom" aria-pressed="false" onclick="window.selectTopTextMode && window.selectTopTextMode('custom')">✏️ Custom Text<small>Type Own Header</small></button>
+            <button type="button" data-seg="o_toptext_mode" data-v="none" aria-pressed="false" onclick="window.selectTopTextMode && window.selectTopTextMode('none')">🚫 No Big Text<small>Clean Video Only</small></button>
+          </div>
+          <div id="custom_toptext_field" style="display:none;margin-top:8px;">
+            <label style="display:block;font-size:12px;font-weight:600;color:var(--dim);margin-bottom:4px;">Custom Top Headline Banner:</label>
+            <input type="text" id="custom_toptext_input" placeholder="e.g. WAIT TILL THE END! 😱" style="width:100%;padding:9px 14px;border-radius:8px;border:1px solid var(--line-2);background:var(--bg);color:var(--text);font-weight:600;font-size:14px;">
+          </div>
+        </div>
+      </div>
       
       <div class="ob wide"><div class="ot">Auto-Post to Social Media</div>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px;">
@@ -1554,11 +1579,58 @@ document.addEventListener("keydown", e => {
 const targetCreator = () => creatorId() || $("#o_creator")?.value || "";
 function jobOptions() {
   const n = id => { const v = $(id).value; return v === "" ? null : Number(v); };
-  const o = {max_clips:n("#o_max"), min_len:n("#o_min"), max_len:n("#o_maxlen"), captions:$("#o_captions").checked, style:$("#o_style").value, layout:$("#o_layout").value, quality:n("#o_quality")};
+  const topTextOn = $("#o_toptext_toggle") ? $("#o_toptext_toggle").checked : true;
+  const topTextMode = $("#o_toptext_mode") ? $("#o_toptext_mode").value : "viral_hook";
+  const customTop = $("#custom_toptext_input") ? $("#custom_toptext_input").value.trim() : "";
+  const o = {
+    max_clips: n("#o_max"),
+    min_len: n("#o_min"),
+    max_len: n("#o_maxlen"),
+    captions: $("#o_captions").checked,
+    style: $("#o_style").value,
+    layout: $("#o_layout").value,
+    quality: n("#o_quality"),
+    top_text: topTextOn && topTextMode !== "none",
+    top_text_mode: topTextOn ? topTextMode : "none",
+    custom_top_text: customTop
+  };
   if (n("#o_from") !== null) o.range_start = n("#o_from") * 60;
   if (n("#o_to") !== null) o.range_end = n("#o_to") * 60;
   return o;
 }
+
+window.toggleTopText = function(on) {
+  const lbl = $("#toptext_status_label");
+  const wrap = $("#toptext_controls_wrap");
+  if (lbl) {
+    lbl.textContent = on ? "YES (ON)" : "NO (OFF)";
+    lbl.style.color = on ? "#10B981" : "#EF4444";
+  }
+  if (wrap) {
+    wrap.style.opacity = on ? "1" : "0.45";
+    wrap.style.pointerEvents = on ? "auto" : "none";
+  }
+};
+
+window.selectTopTextMode = function(mode) {
+  const hid = $("#o_toptext_mode");
+  if (hid) hid.value = mode;
+  $$("[data-seg=o_toptext_mode]").forEach(b => b.setAttribute("aria-pressed", b.dataset.v === mode));
+  const customField = $("#custom_toptext_field");
+  if (customField) {
+    customField.style.display = mode === "custom" ? "block" : "none";
+    if (mode === "custom") $("#custom_toptext_input")?.focus();
+  }
+  const toggle = $("#o_toptext_toggle");
+  const lbl = $("#toptext_status_label");
+  if (mode === "none") {
+    if (toggle) toggle.checked = false;
+    if (lbl) { lbl.textContent = "NO (OFF)"; lbl.style.color = "#EF4444"; }
+  } else {
+    if (toggle) toggle.checked = true;
+    if (lbl) { lbl.textContent = "YES (ON)"; lbl.style.color = "#10B981"; }
+  }
+};
 /* ---------- attachments: nothing starts until Make clips is pressed.
    Each page keeps its own draft (Home, All videos and every creator), so a link typed for one creator never
    shows up under another. Links move out of the box into the list as soon as they are recognised. */

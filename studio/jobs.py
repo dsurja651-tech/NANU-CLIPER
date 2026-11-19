@@ -108,7 +108,8 @@ _lock = threading.RLock()
 on_clip_ready: list = []   # callbacks (job, clip), run once when a clip first finishes
 
 DEFAULTS = {"max_clips": 6, "min_len": 15, "max_len": 60, "style": "bounce", "layout": "blur", "quality": 720,
-            "range_start": None, "range_end": None, "captions": True}
+            "range_start": None, "range_end": None, "captions": True,
+            "top_text": True, "top_text_mode": "viral_hook", "custom_top_text": ""}
 
 
 LIMITS = {"max_clips": (1, 20), "min_len": (5, 120), "max_len": (10, 180), "quality": (360, 2160)}
@@ -118,10 +119,14 @@ def clean_options(options) -> dict:
     """Only known settings, each inside its allowed range. Raises ValueError on nonsense."""
     out = {}
     for k, v in (options if isinstance(options, dict) else {}).items():
-        if k == "captions":
-            if not isinstance(v, bool):
-                raise ValueError("Captions must be on or off.")
-            out[k] = v
+        if k in ("captions", "top_text"):
+            out[k] = bool(v)
+            continue
+        if k == "top_text_mode":
+            out[k] = str(v) if v in ("viral_hook", "video_title", "custom", "none") else "viral_hook"
+            continue
+        if k == "custom_top_text":
+            out[k] = str(v)[:60]
             continue
         if k not in DEFAULTS or v in ("", None):
             continue
@@ -783,6 +788,14 @@ def _run_job(job):
                     keep.append(c)
             found = keep
         for c in found:
+            # Top Headline / Big Text banner options
+            if o.get("top_text") is False or o.get("top_text_mode") == "none":
+                c["hook"] = ""
+            elif o.get("top_text_mode") == "video_title":
+                c["hook"] = (job.get("title") or c.get("title") or "")[:60]
+            elif o.get("top_text_mode") == "custom" and o.get("custom_top_text"):
+                c["hook"] = str(o.get("custom_top_text"))[:60]
+
             c.update(id=f"clip{len(job['clips']) + 1:02d}", start=round(c["start"] + shift, 2),
                      end=round(c["end"] + shift, 2), style=o["style"], layout=o["layout"],
                      captions=o.get("captions", True), status="queued", version=0)
