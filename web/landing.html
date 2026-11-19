@@ -697,6 +697,82 @@ footer.main-footer {
   color: var(--text-dim);
   font-size: 13px;
 }
+
+/* Studio Choice Modal */
+.studio-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 7, 13, 0.88);
+  backdrop-filter: blur(20px);
+  z-index: 99999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.studio-modal-backdrop.open { display: flex; }
+.studio-modal-card {
+  background: #0E1320;
+  border: 1px solid rgba(139, 92, 246, 0.45);
+  box-shadow: 0 30px 90px rgba(0,0,0,0.9), 0 0 60px rgba(139, 92, 246, 0.3);
+  border-radius: 26px;
+  max-width: 580px;
+  width: 100%;
+  padding: 38px 32px;
+  text-align: center;
+  position: relative;
+  animation: modalScale 0.26s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes modalScale {
+  0% { transform: scale(0.92); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.modal-close-btn {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  background: rgba(255, 255, 255, 0.08);
+  border: none;
+  color: #fff;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+  transition: all 0.15s;
+}
+.modal-close-btn:hover { background: rgba(255, 255, 255, 0.18); }
+.modal-options-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 24px;
+  text-align: left;
+}
+.modal-option-box {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 18px 20px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.modal-option-box:hover {
+  background: rgba(139, 92, 246, 0.14);
+  border-color: rgba(139, 92, 246, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+}
+.modal-option-box .opt-icon { font-size: 32px; flex-shrink: 0; }
+.modal-option-box .opt-info { flex: 1; }
+.modal-option-box .opt-info h3 { font-size: 15px; font-weight: 800; color: #fff; margin-bottom: 3px; }
+.modal-option-box .opt-info p { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
 </style>
 </head>
 <body>
@@ -707,7 +783,7 @@ footer.main-footer {
 
 <div class="top-banner">
   <span>🚀 NanuCut Clipper 2.0 Released: 4K UHD Export, Opus Face-Tracking Split &amp; AI Voice Studio!</span>
-  <a href="http://127.0.0.1:8765/app">Try It Free ➔</a>
+  <a href="#" onclick="launchStudio(event)">Try It Free ➔</a>
 </div>
 
 <header class="site-nav">
@@ -724,7 +800,7 @@ footer.main-footer {
       <li><a href="https://github.com/dsurja651-tech/NANU-CLIPER" target="_blank">GitHub</a></li>
     </ul>
     <div style="display:flex;gap:12px;">
-      <a href="http://127.0.0.1:8765/app" class="btn btn-primary">🚀 Launch Studio</a>
+      <a href="#" onclick="launchStudio(event)" class="btn btn-primary">🚀 Launch Studio</a>
     </div>
   </div>
 </header>
@@ -959,7 +1035,7 @@ footer.main-footer {
       <div class="chip">💻 Ollama (100% Offline Local)</div>
     </div>
 
-    <a href="http://127.0.0.1:8765/app" class="btn btn-primary" style="padding:15px 36px;font-size:16px;">
+    <a href="#" onclick="launchStudio(event)" class="btn btn-primary" style="padding:15px 36px;font-size:16px;">
       🚀 Open Studio &amp; Start Free
     </a>
   </div>
@@ -1106,12 +1182,44 @@ function handleCustomUrl() {
   });
 }
 
+function launchStudio(event) {
+  if (event) event.preventDefault();
+  const host = window.location.hostname;
+  // If user opened this on their local PC or on their phone via local Wi-Fi IP (e.g. 192.168.0.2):
+  if (host === "localhost" || host === "127.0.0.1" || /^192\.168\./.test(host) || /^10\./.test(host)) {
+    window.location.href = `http://${host}:8765/app`;
+    return;
+  }
+  // Otherwise, user is visiting via public internet (GitHub Pages, Cloudflare, Vercel)
+  document.getElementById("studioModal").classList.add("open");
+}
+
+function closeStudioModal() {
+  document.getElementById("studioModal").classList.remove("open");
+}
+
+function launchWebStudio() {
+  const cloudUrl = window.NANUCUT_CLOUD_URL || "https://huggingface.co/spaces";
+  window.open(cloudUrl, "_blank");
+}
+
+function downloadDesktopApp() {
+  window.open("https://github.com/dsurja651-tech/NANU-CLIPER/archive/refs/heads/main.zip", "_blank");
+}
+
+function launchLocalWifi() {
+  const ip = prompt("Enter your computer's local Wi-Fi IP address (default: 192.168.0.2):", "192.168.0.2");
+  if (ip) {
+    window.location.href = `http://${ip.trim()}:8765/app`;
+  }
+}
+
 function launchClipperFromHero() {
   const url = document.getElementById("heroYtInput").value.trim();
   if (url) {
     sessionStorage.setItem("nanucut_incoming_url", url);
   }
-  window.location.href = "http://127.0.0.1:8765/app";
+  launchStudio();
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -1149,6 +1257,52 @@ document.addEventListener("DOMContentLoaded", () => {
   }, 2400);
 });
 </script>
+
+<!-- Get Studio Modal -->
+<div class="studio-modal-backdrop" id="studioModal" onclick="if(event.target===this) closeStudioModal()">
+  <div class="studio-modal-card">
+    <button class="modal-close-btn" onclick="closeStudioModal()">✕</button>
+    <div style="font-size:36px;margin-bottom:8px;">✂️</div>
+    <h2 style="font-family:'Space Grotesk',sans-serif;font-size:24px;font-weight:900;margin-bottom:6px;">
+      Get NanuCut Clipper Studio
+    </h2>
+    <p style="color:var(--text-muted);font-size:13px;">
+      100% Free Forever · No Subscription · Bring Your Own Free AI Keys
+    </p>
+
+    <div class="modal-options-grid">
+      <!-- Option 1: Browser Cloud Web App -->
+      <div class="modal-option-box" onclick="launchWebStudio()">
+        <div class="opt-icon">🌐</div>
+        <div class="opt-info">
+          <h3>Launch in Browser (Cloud)</h3>
+          <p>Zero installation. Run free on Hugging Face Spaces with Gemini, Groq, or DeepSeek.</p>
+        </div>
+        <span class="btn btn-primary" style="padding:8px 16px;font-size:12px;">Launch ➔</span>
+      </div>
+
+      <!-- Option 2: Download PC Studio -->
+      <div class="modal-option-box" onclick="downloadDesktopApp()">
+        <div class="opt-icon">💻</div>
+        <div class="opt-info">
+          <h3>Download for Windows PC</h3>
+          <p>Full 4K UHD rendering, local Whisper AI &amp; GPU speed. 1-Click Run (.zip).</p>
+        </div>
+        <span class="btn btn-secondary" style="padding:8px 16px;font-size:12px;">Download</span>
+      </div>
+
+      <!-- Option 3: Local Wi-Fi on Phone -->
+      <div class="modal-option-box" onclick="launchLocalWifi()">
+        <div class="opt-icon">📱</div>
+        <div class="opt-info">
+          <h3>Connect Phone to PC</h3>
+          <p>If your phone is on the same home Wi-Fi, open your PC's active studio.</p>
+        </div>
+        <span class="btn btn-secondary" style="padding:8px 16px;font-size:12px;">Connect</span>
+      </div>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>
