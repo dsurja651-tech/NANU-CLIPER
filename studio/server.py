@@ -1541,7 +1541,7 @@ def admin_delete_user(request: Request, uid: str, body: dict = Body(...)):
 
 
 def main():
-    print(f"\n  PeakCut is running:  {config.PUBLIC_URL}\n")
+    print(f"\n  NanuCut Clipper is running:  {config.PUBLIC_URL}\n")
     if not config.ACCOUNTS and (config.HTTPS or config.HOST not in ("127.0.0.1", "localhost", "::1")):
         print("  Sign-in is off, so anyone who can reach this address can use PeakCut and its AI key.\n"
               "  On a server other people can reach, set PEAKCUT_ACCOUNTS=1 in .env.\n", flush=True)
