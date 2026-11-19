@@ -79,7 +79,8 @@ def install_fonts():
 
 
 LAYOUTS = {"blur": "Full frame + blurred fill", "zoom": "Zoomed in + blurred fill", "crop": "Fill the screen (centre crop)",
-           "gameplay": "Gameplay fills the screen, facecam in the corner"}
+           "gameplay": "Gameplay fills the screen, facecam in the corner",
+           "split": "Facecam on top, gameplay below, captions in between"}
 
 
 def _ts(t):
@@ -111,15 +112,21 @@ def _groups(words, per):
 
 def geometry(src_w, src_h, layout):
     """Where the video sits in the 1080x1920 frame, and where hook and captions go."""
-    if src_h >= src_w and layout != "crop":
+    if src_h >= src_w and layout not in ("crop", "split"):
         layout = "crop"  # already vertical or square: nothing to gain from a blurred fill
     if layout == "blur":
         fg_h = min(H, int(round(W * src_h / src_w / 2)) * 2)
     elif layout == "zoom":
         fg_h = 1000
+    elif layout == "split":
+        fg_h = 960
     else:
         fg_h = H
     top = (H - fg_h) // 2
+    if layout == "split":
+        # Facecam on top (0-960), Gameplay on bottom (960-1920).
+        # Word-by-word captions positioned right in between at seam (960), hook title at top (130).
+        return layout, fg_h, 130, 960
     if layout in ("crop", "gameplay"):
         return layout, fg_h, 300, 1380
     return layout, fg_h, max(230, top - 190), min(1640, top + fg_h + 180)
@@ -233,6 +240,21 @@ PIP_MARGIN = 26
 
 
 def _filter(layout, fg_h, facecam=None):
+    if layout == "split":
+        # Facecam on top (0 to 960), Gameplay on bottom (960 to 1920)
+        # Word-by-word captions are placed right in between at seam (960)
+        if facecam:
+            fx, fy, fw, fh = (int(v) for v in facecam)
+            if fw > 8 and fh > 8:
+                return (f"[0:v]fps={config.OUT_FPS},split=2[base][fc];"
+                        f"[fc]crop={fw}:{fh}:{fx}:{fy},scale={W}:960:force_original_aspect_ratio=increase,crop={W}:960,setsar=1[top];"
+                        f"[base]scale={W}:960:force_original_aspect_ratio=increase,crop={W}:960,setsar=1[bot];"
+                        f"[top][bot]vstack=inputs=2[v0];")
+        # Fallback if no facecam detected: upper crop for face and center-lower crop for gameplay
+        return (f"[0:v]fps={config.OUT_FPS},split=2[t_raw][b_raw];"
+                f"[t_raw]scale={W}:960:force_original_aspect_ratio=increase,crop={W}:960:0:0,setsar=1[top];"
+                f"[b_raw]scale={W}:960:force_original_aspect_ratio=increase,crop={W}:960:(in_w-out_w)/2:(in_h-out_h)/2,setsar=1[bot];"
+                f"[top][bot]vstack=inputs=2[v0];")
     if layout == "gameplay" and facecam:
         # The game fills the screen, and the webcam sits in the top corner of it, so a viewer sees
         # the play and the face at the same time.
@@ -253,8 +275,8 @@ def _filter(layout, fg_h, facecam=None):
 
 
 def _hook_y(layout, hook_y, facecam=None):
-    """Where the heading goes. In the gameplay layout the webcam sits in the top corner, so a heading
-    across the top would run under it: it goes just below the picture instead."""
+    if layout == "split":
+        return 130
     if layout == "gameplay" and facecam and len(facecam) == 4 and facecam[2] > 8:
         return PIP_MARGIN + int(round(PIP_W * facecam[3] / facecam[2])) + 32
     return hook_y
