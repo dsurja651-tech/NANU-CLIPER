@@ -524,15 +524,16 @@ def _covers(words: list, start: float, end: float) -> bool:
 
 
 def _facecam(job) -> list | None:
-    """Where the webcam is in the source: once for the whole video, for every clip of it.
-
-    Only a sure answer is used. A box that is a scoreboard drawn over the game would
-    put a picture of a scoreboard in the corner of the clip. One frame is also shown to
-    the AI, which tells a person from a game character better than any measurement can;
-    what it says is measured again on the picture, so it cannot do any harm."""
     path = job.get("source_path")
     if not path or not Path(path).is_file():
         return None
+    try:
+        tight_face = facecam.detect_face_box(path)
+        if tight_face:
+            job["facecam"] = tight_face
+            return job["facecam"]
+    except Exception:
+        pass
     try:
         box = facecam.detect(path, ask=brain.look_for_facecam)
     except Exception:  # noqa: BLE001 - a missing facecam is not a failure

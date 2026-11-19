@@ -365,3 +365,49 @@ def detect(path: str | Path, ask=None) -> dict | None:
     if not found:
         return None
     return _finish(path, found[0], w, h, still)
+
+
+def detect_face_box(path: str | Path) -> list | None:
+    """Use neural network face detector to locate the person's face tightly so only the face is framed."""
+    try:
+        import cv2
+        yunet_path = Path(__file__).resolve().parent / "models" / "yunet.onnx"
+        if not yunet_path.exists():
+            return None
+        cap = cv2.VideoCapture(str(path))
+        if not cap.isOpened():
+            return None
+        total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT) or 100)
+        w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH) or 1920)
+        h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT) or 1080)
+        detector = cv2.FaceDetectorYN.create(str(yunet_path), "", (w, h), 0.5)
+
+        face_boxes = []
+        for step in [0.15, 0.35, 0.55, 0.75]:
+            cap.set(cv2.CAP_PROP_POS_FRAMES, int(total_frames * step))
+            ret, frame = cap.read()
+            if not ret or frame is None:
+                continue
+            detector.setInputSize((frame.shape[1], frame.shape[0]))
+            _, faces = detector.detect(frame)
+            if faces is not None and len(faces) > 0:
+                for f in faces:
+                    fx, fy, fw, fh = int(f[0]), int(f[1]), int(f[2]), int(f[3])
+                    pad_w = int(fw * 0.4)
+                    pad_h = int(fh * 0.4)
+                    cx = max(0, fx - pad_w)
+                    cy = max(0, fy - pad_h)
+                    cw = min(w - cx, fw + pad_w * 2)
+                    ch = min(h - cy, fh + pad_h * 2)
+                    face_boxes.append((cx, cy, cw, ch))
+        cap.release()
+        if face_boxes:
+            avg_x = int(sum(b[0] for b in face_boxes) / len(face_boxes))
+            avg_y = int(sum(b[1] for b in face_boxes) / len(face_boxes))
+            avg_w = int(sum(b[2] for b in face_boxes) / len(face_boxes))
+            avg_h = int(sum(b[3] for b in face_boxes) / len(face_boxes))
+            return [avg_x, avg_y, avg_w, avg_h]
+    except Exception:
+        pass
+    return None
+
