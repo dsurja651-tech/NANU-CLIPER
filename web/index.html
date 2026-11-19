@@ -1806,7 +1806,7 @@ function clipHtml(j, c) {
         ${busyClip ? "" : `<label class="selck" title="Select this clip"><input type="checkbox" data-sel="${key}" ${sel().has(key) ? "checked" : ""} aria-label="Select this clip"></label>`}
         ${c.status === "done" ? `<a class="btn sm icon ghost" href="${m}${esc(c.file)}?download=1" title="Download" aria-label="Download">${ic("down")}</a>` : ""}
         <button class="btn sm icon ghost" data-act="copy" ${a} title="Copy post text" aria-label="Copy post text">${ic("copy")}</button>
-        ${busyClip ? "" : `<button class="btn sm icon ghost" data-act="delclip" ${a} title="Delete this clip" aria-label="Delete this clip">${ic("trash")}</button>`}
+        ${busyClip ? "" : `<button class="btn sm danger ghost" data-act="delclip" ${a} title="Delete this clip" aria-label="Delete this clip" style="color:var(--bad);">${ic("trash")}Delete</button>`}
         <span class="grow"></span>
         ${c.status === "done" ? `<button class="btn sm" data-act="openclip" ${a}>${ic("send")}Post</button>` : ""}
       </div>
@@ -2301,9 +2301,11 @@ function drawClipDlg(full) {
         ${S.accounts.length ? `<div class="row">${S.accounts.map(a => `<label class="ck"><input type="checkbox" data-pacc value="${esc(a.id)}">${esc(a.label)} · ${esc(a.name)}</label>`).join("")}</div>
           <div class="row"><button class="btn primary" data-act="postnow">${ic("send")}Post now</button><button class="btn" data-act="postqueue">Add to queue</button></div>`
           : `<p class="help">No accounts connected yet. Connect one in Settings.</p>`}
-        <div class="row" style="margin-top:auto;padding-top:8px;border-top:1px solid var(--line)">
+        <div class="row" style="margin-top:auto;padding-top:8px;border-top:1px solid var(--line);align-items:center;">
           ${c.status === "done" ? `<a class="btn" href="${m}${esc(c.file)}?download=1">${ic("down")}Download</a>` : ""}
-          <button class="btn" data-act="copy" data-j="${j.id}" data-c="${esc(c.id)}">${ic("copy")}Copy post text</button></div>
+          <button class="btn" data-act="copy" data-j="${j.id}" data-c="${esc(c.id)}">${ic("copy")}Copy post text</button>
+          <button class="btn danger" data-act="delclip" data-j="${j.id}" data-c="${esc(c.id)}" style="margin-left:auto;">${ic("trash")}Delete Clip</button>
+        </div>
       </div></div>`;
   } else if (D.sig !== sig) $("#stage").innerHTML = stage;
   D.sig = sig;
@@ -2481,10 +2483,11 @@ document.addEventListener("click", async e => {
       toast("Password changed. Other devices were signed out.", "ok"); return drawSettings();
     }
     if (a === "delclip") {
-      if (!await ask("Delete this clip?", "The clip is removed for good. The video and its other clips stay.", "Delete clip", true)) return;
+      if (!await ask("Delete this clip?", "The clip is permanently removed from storage. The original video and other clips stay.", "Delete clip", true)) return;
       await api(`/api/jobs/${d.j}/clips/${encodeURIComponent(d.c)}`, {method:"DELETE"});
       const j = jobOf(d.j); if (j) j.clips = j.clips.filter(c => c.id !== d.c);
-      render(); toast("Clip deleted", "ok"); return tick();
+      const dlg = $("#clipdlg"); if (dlg && dlg.open) dlg.close();
+      render(); toast("Clip deleted successfully from storage", "ok"); return tick();
     }
     if (a === "dlall") return zipDownload((jobOf(d.j)?.clips || []).filter(c => c.status === "done").map(c => d.j + "." + c.id));
     if (a === "seldl") return zipDownload(selClips());
