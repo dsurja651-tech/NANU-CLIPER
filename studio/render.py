@@ -14,6 +14,10 @@ W, H = config.OUT_W, config.OUT_H
 STYLES = {
     "opus": {"label": "Opus Clip (Neon)", "font": "Poppins ExtraBold", "size": 136, "base": "FFFFFF", "active": "00FF66",
              "strong": "00FFFF", "outline": 8, "pop": 120, "upper": True, "per": 3},
+    "beast": {"label": "MrBeast (Viral)", "font": "Archivo Black", "size": 138, "base": "FFFFFF", "active": "00F0FF",
+              "strong": "00FFFF", "outline": 9, "pop": 125, "upper": True, "per": 2},
+    "gaming": {"label": "Gaming (Arcade)", "font": "Anton", "size": 150, "base": "FFFFFF", "active": "3C3CFF",
+               "strong": "00FFFF", "outline": 8, "pop": 120, "upper": True, "per": 2},
     "bounce": {"label": "Bounce", "font": "Poppins ExtraBold", "size": 132, "base": "FFFFFF", "active": "00F0FF",
                "strong": "FFFFFF", "outline": 7, "pop": 112, "upper": True, "per": 3},
     "hype": {"label": "Hype", "font": "Anton", "size": 152, "base": "FFFFFF", "active": "3C3CFF",

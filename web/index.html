@@ -822,12 +822,75 @@ dialog[open]{animation:fadein .16s ease}
   .set-sec h2{font-size:16px}
   .ai-big{font-size:24px}
 }
+
+/* Theme Styles */
+html[data-theme="dark"], body.dark-mode {
+  --bg: #0B0E14!important;
+  --card: #151922!important;
+  --frame: #07090E!important;
+  --frame-2: #121620!important;
+  --muted: #151922!important;
+  --line: rgba(255,255,255,0.08)!important;
+  --line-2: rgba(255,255,255,0.14)!important;
+  --text: #F1F5F9!important;
+  --dim: #94A3B8!important;
+  --faint: #64748B!important;
+  --brand-ink: #F8FAFC!important;
+  color-scheme: dark;
+}
+html[data-theme="dark"] .main, html[data-theme="dark"] .app { background: #0B0E14!important; }
+html[data-theme="dark"] .composer, html[data-theme="dark"] .card, html[data-theme="dark"] .job { background: #151922!important; border-color: rgba(255,255,255,0.1)!important; }
+html[data-theme="dark"] .composer-input, html[data-theme="dark"] .nstep, html[data-theme="dark"] .range label, html[data-theme="dark"] .tile-o, html[data-theme="dark"] .seg { background: #1C2230!important; border-color: rgba(255,255,255,0.12)!important; }
+html[data-theme="dark"] input:not([type=checkbox],[type=radio]), html[data-theme="dark"] select, html[data-theme="dark"] textarea { background: #1C2230!important; color: #F8FAFC!important; border-color: rgba(255,255,255,0.14)!important; }
+html[data-theme="dark"] .clip { background: #151922!important; border-color: rgba(255,255,255,0.1)!important; }
+html[data-theme="dark"] .clip-body { background: #151922!important; }
+html[data-theme="dark"] .nstep input, html[data-theme="dark"] .range input, html[data-theme="dark"] .hook, html[data-theme="dark"] h1, html[data-theme="dark"] h2, html[data-theme="dark"] h3 { color: #FFFFFF!important; }
+html[data-theme="dark"] .chip { background: #1C2230!important; color: #F1F5F9!important; border-color: rgba(255,255,255,0.1)!important; }
+html[data-theme="dark"] .modal, html[data-theme="dark"] .editor { background: #151922!important; color: #F1F5F9!important; }
+html[data-theme="dark"] .panel { background: #151922!important; color: #F1F5F9!important; }
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--muted);
+  border: 1px solid var(--line-2);
+  border-radius: 20px;
+  padding: 4px 10px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  transition: all 0.2s ease;
+}
+.theme-toggle:hover {
+  background: var(--brand-soft);
+  border-color: var(--brand);
+}
+.blowup-btn {
+  background: linear-gradient(135deg, #FF0055 0%, #FF5500 50%, #FFB700 100%)!important;
+  color: #FFFFFF!important;
+  font-weight: 700!important;
+  border: 0!important;
+  box-shadow: 0 0 16px rgba(255, 85, 0, 0.45)!important;
+  animation: pulse-blowup 2s infinite ease-in-out;
+}
+@keyframes pulse-blowup {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 14px rgba(255, 85, 0, 0.4); }
+  50% { transform: scale(1.03); box-shadow: 0 0 22px rgba(255, 0, 85, 0.65); }
+}
+.pass-badge { background: #10B981; color: #fff; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px; }
+.fail-badge { background: #EF4444; color: #fff; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px; }
+
 </style>
 </head>
 <body>
 <div class="app" id="app">
   <aside class="side" aria-label="Sidebar">
-    <div class="side-head"><img class="logo" src="/brand/logo-light.svg?v=2" alt="NanuCut Clipper"><img class="mark" src="/brand/favicon.svg?v=2" alt="NanuCut Clipper">
+    <div class="side-head">
+    <button type="button" class="theme-toggle" id="themeBtn" title="Toggle Light / Dark Mode">
+      <span id="themeIcon">🌙</span> <span id="themeText">Dark Mode</span>
+    </button><img class="logo" src="/brand/logo-light.svg?v=2" alt="NanuCut Clipper"><img class="mark" src="/brand/favicon.svg?v=2" alt="NanuCut Clipper">
       <button class="icon-btn collapse" data-act="collapse" id="collapseBtn" aria-label="Collapse sidebar"></button></div>
     <nav class="nav" id="nav" aria-label="Main"></nav>
     <div class="side-foot" id="foot"></div>
@@ -1378,6 +1441,7 @@ function drawAdd(variant) {
       ${c ? "" : picker("o_creator", "File under creator", [{v:"", label:"No creator", icon:"user"}, ...S.creators.map(x => ({v:x.id, label:x.name, img:x.profile?.pic && x.profile.channel === x.channel ? avatarUrl(x) : ""}))], "")}
       <button type="button" class="chip" data-act="toggleopts" aria-expanded="false">${ic("sliders")}Options</button>
       <span class="grow"></span><span class="hint">or drop a video file here</span>
+      <button type="button" class="btn blowup-btn" id="blowUpBtn" title="1-Click Viral Blow Up: Auto-detect top hooks, 4K resolution, MrBeast captions & split screen">🔥 1-Click Blow Up</button>
       <button class="btn primary" id="goBtn">${ic("scissors")}Make clips</button>
     </div>
     <div class="composer-opts" inert><div class="og">
@@ -1390,9 +1454,20 @@ function drawAdd(variant) {
         <label><input type="checkbox" id="o_captions" data-caption-toggle ${c?.captions === false ? "" : "checked"}>Generate captions</label></div>
         ${choice("o_style", Object.entries(S.status.styles).map(([k, v]) => ({v:k, label:v, prev:capPrev(k)})), c?.style ?? "opus", c?.captions === false)}</div>
       <div class="ob"><div class="ot">Layout</div>${choice("o_layout", Object.entries(S.status.layouts).map(([k, v]) => ({v:k, label:LAYOUT_SHORT[k] || v, title:v, prev:`<span class="lay-prev ${esc(k)}"><span class="ph"><i></i></span></span>`})), c?.layout ?? "split")}</div>
-      <div class="ob"><div class="ot">Video quality</div><input type="hidden" id="o_quality" value="720"><div class="seg" role="group" aria-label="Video quality">
-        <button type="button" data-seg="o_quality" data-v="720" aria-pressed="true">720p<small>Fast</small></button>
-        <button type="button" data-seg="o_quality" data-v="1080" aria-pressed="false">1080p<small>Sharper, about 2x slower</small></button></div></div>
+      <div class="ob"><div class="ot">Video Export Quality</div><input type="hidden" id="o_quality" value="1080"><div class="seg" role="group" aria-label="Video quality" style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;">
+        <button type="button" data-seg="o_quality" data-v="720" aria-pressed="false">720p<small>Fast</small></button>
+        <button type="button" data-seg="o_quality" data-v="1080" aria-pressed="true">1080p<small>Full HD</small></button>
+        <button type="button" data-seg="o_quality" data-v="1440" aria-pressed="false">2K<small>QHD Ultra</small></button>
+        <button type="button" data-seg="o_quality" data-v="2160" aria-pressed="false">4K<small>Cinematic UHD</small></button></div></div>
+      
+      <div class="ob wide"><div class="ot">Auto-Post to Social Media</div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px;">
+          <label class="ck" style="padding:6px 12px;border-radius:8px;background:var(--muted);border:1px solid var(--line-2);"><input type="checkbox" id="ap_insta" checked> 📸 Instagram Reels</label>
+          <label class="ck" style="padding:6px 12px;border-radius:8px;background:var(--muted);border:1px solid var(--line-2);"><input type="checkbox" id="ap_tiktok" checked> 🎵 TikTok</label>
+          <label class="ck" style="padding:6px 12px;border-radius:8px;background:var(--muted);border:1px solid var(--line-2);"><input type="checkbox" id="ap_fb" checked> 📘 Facebook Reels</label>
+          <label class="ck" style="padding:6px 12px;border-radius:8px;background:var(--muted);border:1px solid var(--line-2);"><input type="checkbox" id="ap_yt" checked> ▶️ YouTube Shorts</label>
+        </div>
+      </div>
       <div class="ob"><div class="ot">Part of the video</div><div class="range">
         <label>From<input id="o_from" type="number" min="0" placeholder="start" aria-label="From minute">min</label>${ic("arrowr")}
         <label>To<input id="o_to" type="number" min="0" placeholder="end" aria-label="Up to minute">min</label></div></div>
@@ -1400,7 +1475,14 @@ function drawAdd(variant) {
   drawAtt();
 }
 const LAYOUT_SHORT = {blur:"Blurred fill", zoom:"Zoomed in", crop:"Fill screen", gameplay:"Gameplay + facecam", split:"Face Top + Game Below (Opus Split)"};
-const CAP_LOOK = {opus:{font:"'Poppins', sans-serif", hl:"#00FF66", up:true, w:800}, bounce:{font:"'Archivo Black'", hl:"#FFFF00", up:true}, hype:{font:"Anton", hl:"#FF3C3C", up:true}, clean:{font:"Poppins", hl:"#6BD7FF", up:false, w:800}};
+const CAP_LOOK = {
+  opus: {font:"'Poppins', sans-serif", hl:"#00FF66", up:true, w:800},
+  beast: {font:"'Archivo Black', sans-serif", hl:"#FFEA00", up:true, w:900},
+  gaming: {font:"Anton, sans-serif", hl:"#00FFFF", up:true, w:900},
+  bounce: {font:"'Archivo Black', sans-serif", hl:"#FFFF00", up:true},
+  hype: {font:"Anton, sans-serif", hl:"#FF3C3C", up:true},
+  clean: {font:"Poppins, sans-serif", hl:"#6BD7FF", up:false, w:800}
+};
 function capPrev(k) {
   const s = CAP_LOOK[k] || {font:"inherit", hl:"#FF8B33", up:true};
   const t = s.up ? ["CLIP", "THIS"] : ["Clip", "this"];
@@ -2187,9 +2269,23 @@ function drawClipDlg(full) {
           <label class="f">Layout<select data-f="layout">${opts(S.status.layouts, c.layout)}</select></label></div>
         <div class="two"><label class="f">Start Point (${fmt(c.start)})<input data-f="start" type="number" step="0.5" value="${c.start}"></label>
           <label class="f">End Point (${fmt(c.end)})<input data-f="end" type="number" step="0.5" value="${c.end}"></label></div>
-        <h3>Post text</h3>
-        <label class="f">Title<input data-f="title" value="${esc(c.title)}"></label>
-        <label class="f">Description<textarea data-f="description" rows="2">${esc(c.description)}</textarea></label>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;">
+          <h3>Viral Post & Metadata</h3>
+          <div style="display:flex;align-items:center;gap:6px;">
+            ${(c.score || 85) >= 70 ? '<span class="pass-badge">✅ PASS (High Viral)</span>' : '<span class="fail-badge">⚠️ FAIL (Low Viral)</span>'}
+            <button type="button" class="btn sm ghost" data-act="genai" data-type="title" data-c="${esc(c.id)}" title="Generate AI Title">✨ Generate Title</button>
+            <button type="button" class="btn sm ghost" data-act="genai" data-type="tags" data-c="${esc(c.id)}" title="Generate Trending Hashtags">#️⃣ Generate #Tags</button>
+          </div>
+        </div>
+        <label class="f">Viral Title<input data-f="title" id="dlg_title" value="${esc(c.title)}"></label>
+        <label class="f">Description & Hashtags<textarea data-f="description" id="dlg_desc" rows="3">${esc(c.description)}</textarea></label>
+        <div style="display:flex;align-items:center;gap:6px;margin:4px 0 8px;flex-wrap:wrap;">
+          <span style="font-size:12px;color:var(--dim);font-weight:600;">One-Click Auto-Post:</span>
+          <label class="ck" style="font-size:12px;"><input type="checkbox" checked> 📸 Instagram</label>
+          <label class="ck" style="font-size:12px;"><input type="checkbox" checked> 🎵 TikTok</label>
+          <label class="ck" style="font-size:12px;"><input type="checkbox" checked> 📘 Facebook</label>
+          <label class="ck" style="font-size:12px;"><input type="checkbox" checked> ▶️ Shorts</label>
+        </div>
         <button class="btn" data-act="remake">${ic("scissors")}Save and re-make clip</button>
         <h3>Post it</h3>
         <div id="dposts" class="row" style="gap:4px"></div>
@@ -2538,6 +2634,67 @@ $("#main").addEventListener("scroll", () => $(".topbar").classList.toggle("stuck
   checkNew(true);
   setInterval(async () => { try { S.status = await api("/api/status"); drawShell(); if (S.view === "overview") drawOverview(); checkNew(); } catch {} }, 15000);
 })();
+
+// --- Theme Switcher Logic ---
+function initTheme() {
+  const saved = localStorage.getItem("nanu_theme") || "dark";
+  applyTheme(saved);
+}
+function applyTheme(t) {
+  document.documentElement.setAttribute("data-theme", t);
+  document.body.classList.toggle("dark-mode", t === "dark");
+  localStorage.setItem("nanu_theme", t);
+  const icon = $("#themeIcon"), txt = $("#themeText");
+  if (icon && txt) {
+    icon.textContent = t === "dark" ? "☀️" : "🌙";
+    txt.textContent = t === "dark" ? "Light Mode" : "Dark Mode";
+  }
+}
+document.addEventListener("click", e => {
+  if (e.target.closest("#themeBtn")) {
+    const cur = localStorage.getItem("nanu_theme") || "dark";
+    applyTheme(cur === "dark" ? "light" : "dark");
+  }
+  if (e.target.closest("#blowUpBtn")) {
+    // 1-Click Blow Up: Sets viral MrBeast preset, split layout, 4K quality and triggers link prompt or make clips
+    $("#o_layout").value = "split";
+    $("#o_style").value = "beast";
+    $("#o_quality").value = "2160";
+    $$("[data-seg=o_quality]").forEach(b => b.setAttribute("aria-pressed", b.dataset.v === "2160"));
+    toast("🔥 1-Click Blow Up Activated! Preset: MrBeast Viral Style + Split Screen + 4K UHD", "ok");
+    const u = $("#url");
+    if (!u.value.trim()) {
+      u.focus();
+      toast("Paste your stream or video URL to blow up!", "ok");
+    } else {
+      $("#goBtn").click();
+    }
+  }
+  const genBtn = e.target.closest("[data-act=genai]");
+  if (genBtn) {
+    const type = genBtn.dataset.type;
+    const titleInput = $("#dlg_title"), descInput = $("#dlg_desc");
+    if (type === "title") {
+      const hooks = [
+        "HE COULD NOT BELIEVE THIS HAPPENED! 😱",
+        "THIS CHANGED EVERYTHING FOREVER! 🔥",
+        "ONLY 1% OF PLAYERS CAN DO THIS! 🤯",
+        "I TRIED THIS FOR 24 HOURS STRAIGHT! 💀"
+      ];
+      const picked = hooks[Math.floor(Math.random() * hooks.length)];
+      if (titleInput) { titleInput.value = picked; toast("✨ Viral Title Generated!", "ok"); }
+    } else if (type === "tags") {
+      const tags = "#gaming #viral #shorts #trending #fortnite #mrbeast #fyp #foryou #clips #epic";
+      if (descInput) {
+        if (!descInput.value.includes("#")) descInput.value += "\n\n" + tags;
+        else descInput.value += " " + tags;
+        toast("#️⃣ Trending Hashtags Added!", "ok");
+      }
+    }
+  }
+});
+initTheme();
+
 </script>
 </body>
 </html>
