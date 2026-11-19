@@ -434,6 +434,18 @@ def favicon():
     return RedirectResponse("/brand/favicon.svg", 308)
 
 
+@app.get("/manifest.json")
+@app.get("/app/manifest.json")
+def manifest():
+    return FileResponse(WEB / "manifest.json", media_type="application/manifest+json")
+
+
+@app.get("/sw.js")
+@app.get("/app/sw.js")
+def service_worker():
+    return FileResponse(WEB / "sw.js", media_type="text/javascript")
+
+
 # ================================================================ sign up, sign in, sign out
 @app.get("/api/public")
 def public_config():

@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>NanuCut Clipper</title>
 <link rel="icon" type="image/svg+xml" href="/brand/favicon.svg">
+<link rel="manifest" href="/app/manifest.json">
+<meta name="theme-color" content="#8B5CF6">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="NanuPanda">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Inter:wght@300&family=Archivo+Black&family=Anton&family=Poppins:wght@800&display=swap" rel="stylesheet">
@@ -3276,7 +3281,34 @@ document.addEventListener("click", e => {
   }
 });
 
+// PWA Service Worker Registration
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/app/sw.js').catch(err => console.log('SW Reg fail:', err));
+  });
+}
 
+// PWA Install Prompt Listener
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  const pwaBtn = document.getElementById('pwa-install-btn');
+  if (pwaBtn) pwaBtn.style.display = 'inline-flex';
+});
+
+window.triggerInstallApp = async function() {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      toast('NanuPanda App installed successfully!', 'ok');
+    }
+    deferredPrompt = null;
+  } else {
+    toast('To install: click the Install icon in your browser URL bar or Add to Home Screen in browser menu', 'info');
+  }
+};
 </script>
 </body>
 </html>
