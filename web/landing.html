@@ -698,34 +698,31 @@ footer.main-footer {
   font-size: 13px;
 }
 
-/* Studio Choice Modal */
-.studio-modal-backdrop {
+/* Download & Setup Guide Modal */
+.download-modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(4, 7, 13, 0.88);
-  backdrop-filter: blur(20px);
+  background: rgba(4, 7, 13, 0.92);
+  backdrop-filter: blur(24px);
   z-index: 99999;
   display: none;
   align-items: center;
   justify-content: center;
   padding: 20px;
 }
-.studio-modal-backdrop.open { display: flex; }
-.studio-modal-card {
-  background: #0E1320;
-  border: 1px solid rgba(139, 92, 246, 0.45);
-  box-shadow: 0 30px 90px rgba(0,0,0,0.9), 0 0 60px rgba(139, 92, 246, 0.3);
-  border-radius: 26px;
-  max-width: 580px;
+.download-modal-backdrop.open { display: flex; }
+.download-modal-card {
+  background: #0D121F;
+  border: 1.5px solid rgba(139, 92, 246, 0.5);
+  box-shadow: 0 30px 100px rgba(0,0,0,0.95), 0 0 70px rgba(139, 92, 246, 0.35);
+  border-radius: 28px;
+  max-width: 660px;
   width: 100%;
-  padding: 38px 32px;
-  text-align: center;
+  padding: 36px 32px 30px;
   position: relative;
-  animation: modalScale 0.26s cubic-bezier(0.16, 1, 0.3, 1);
-}
-@keyframes modalScale {
-  0% { transform: scale(0.92); opacity: 0; }
-  100% { transform: scale(1); opacity: 1; }
+  animation: modalScale 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  max-height: 92vh;
+  overflow-y: auto;
 }
 .modal-close-btn {
   position: absolute;
@@ -745,34 +742,140 @@ footer.main-footer {
   transition: all 0.15s;
 }
 .modal-close-btn:hover { background: rgba(255, 255, 255, 0.18); }
-.modal-options-grid {
+.download-modal-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+.dl-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid #10B981;
+  color: #34D399;
+  font-size: 13px;
+  font-weight: 800;
+  padding: 6px 18px;
+  border-radius: 999px;
+  margin-bottom: 12px;
+}
+.dl-pulse {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #10B981;
+  box-shadow: 0 0 10px #10B981;
+  animation: pulseGreen 1.4s infinite;
+}
+@keyframes pulseGreen {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+.download-modal-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 26px;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: -0.5px;
+  margin-bottom: 8px;
+}
+.download-modal-sub {
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.redownload-bar {
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+.redownload-bar a {
+  color: var(--cyan);
+  text-decoration: underline;
+  font-weight: 700;
+  margin: 0 4px;
+}
+.steps-container {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  margin-top: 24px;
+  gap: 12px;
+  margin: 20px 0 20px;
+}
+.step-card {
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  transition: all 0.2s ease;
   text-align: left;
 }
-.modal-option-box {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  padding: 18px 20px;
+.step-card:hover {
+  background: rgba(139, 92, 246, 0.08);
+  border-color: rgba(139, 92, 246, 0.35);
+  transform: translateX(3px);
+}
+.step-num {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #8B5CF6, #06B6D4);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 900;
+  font-size: 14px;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+}
+.step-body { flex: 1; }
+.step-body h4 {
+  font-size: 15px;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 4px;
+}
+.step-body p {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+.code-inline {
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-family: monospace;
+  color: #FBBF24;
+  font-size: 12px;
+}
+.wifi-callout {
+  background: rgba(6, 182, 212, 0.08);
+  border: 1px solid rgba(6, 182, 212, 0.25);
+  border-radius: 14px;
+  padding: 12px 16px;
+  font-size: 12px;
+  color: #BAE6FD;
   display: flex;
   align-items: center;
-  gap: 18px;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  gap: 12px;
+  margin-bottom: 20px;
+  text-align: left;
 }
-.modal-option-box:hover {
-  background: rgba(139, 92, 246, 0.14);
-  border-color: rgba(139, 92, 246, 0.5);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+.wifi-callout a {
+  color: #38BDF8;
+  font-weight: 800;
+  text-decoration: underline;
 }
-.modal-option-box .opt-icon { font-size: 32px; flex-shrink: 0; }
-.modal-option-box .opt-info { flex: 1; }
-.modal-option-box .opt-info h3 { font-size: 15px; font-weight: 800; color: #fff; margin-bottom: 3px; }
-.modal-option-box .opt-info p { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
+.modal-footer-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
 </style>
 </head>
 <body>
@@ -783,7 +886,7 @@ footer.main-footer {
 
 <div class="top-banner">
   <span>🚀 NanuCut Clipper 2.0 Released: 4K UHD Export, Opus Face-Tracking Split &amp; AI Voice Studio!</span>
-  <a href="#" onclick="launchStudio(event)">Try It Free ➔</a>
+  <a href="#" onclick="downloadStudioZip(event)">⚡ Get Studio (.ZIP) ➔</a>
 </div>
 
 <header class="site-nav">
@@ -800,7 +903,7 @@ footer.main-footer {
       <li><a href="https://github.com/dsurja651-tech/NANU-CLIPER" target="_blank">GitHub</a></li>
     </ul>
     <div style="display:flex;gap:12px;">
-      <a href="#" onclick="launchStudio(event)" class="btn btn-primary">🚀 Launch Studio</a>
+      <a href="#" onclick="downloadStudioZip(event)" class="btn btn-primary">📥 Download Studio (.ZIP)</a>
     </div>
   </div>
 </header>
@@ -822,8 +925,11 @@ footer.main-footer {
     <div class="clipper-box">
       <div class="yt-icon-badge">▶</div>
       <input type="text" id="heroYtInput" placeholder="Paste YouTube link (MrBeast, Gaming, Podcast)..." value="https://www.youtube.com/watch?v=0e3GPea1Tyg" onkeydown="if(event.key==='Enter') handleCustomUrl()">
-      <button type="button" class="btn btn-primary" onclick="handleCustomUrl()">
-        ✂️ Cut into 3 Shorts
+      <button type="button" class="btn btn-secondary" style="padding:10px 18px;font-size:13px;" onclick="handleCustomUrl()">
+        ▶ Preview Slices
+      </button>
+      <button type="button" class="btn btn-primary" onclick="downloadStudioZip(event)">
+        ⚡ Get Studio (.ZIP)
       </button>
     </div>
 
@@ -1035,8 +1141,8 @@ footer.main-footer {
       <div class="chip">💻 Ollama (100% Offline Local)</div>
     </div>
 
-    <a href="#" onclick="launchStudio(event)" class="btn btn-primary" style="padding:15px 36px;font-size:16px;">
-      🚀 Open Studio &amp; Start Free
+    <a href="#" onclick="downloadStudioZip(event)" class="btn btn-primary" style="padding:15px 36px;font-size:16px;">
+      📥 Download Studio (.ZIP) &amp; Start Free
     </a>
   </div>
 </section>
@@ -1182,36 +1288,23 @@ function handleCustomUrl() {
   });
 }
 
-function launchStudio(event) {
+function downloadStudioZip(event) {
   if (event) event.preventDefault();
-  const host = window.location.hostname;
-  // If user opened this on their local PC or on their phone via local Wi-Fi IP (e.g. 192.168.0.2):
-  if (host === "localhost" || host === "127.0.0.1" || /^192\.168\./.test(host) || /^10\./.test(host)) {
-    window.location.href = `http://${host}:8765/app`;
-    return;
-  }
-  // Otherwise, user is visiting via public internet (GitHub Pages, Cloudflare, Vercel)
-  document.getElementById("studioModal").classList.add("open");
+
+  // 1. Immediately trigger the ZIP download in visitor's browser!
+  const a = document.createElement("a");
+  a.href = "NanuCutClipper.zip";
+  a.download = "NanuCutClipper.zip";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+
+  // 2. Open the download & setup guide modal on the screen!
+  document.getElementById("downloadModal").classList.add("open");
 }
 
-function closeStudioModal() {
-  document.getElementById("studioModal").classList.remove("open");
-}
-
-function launchWebStudio() {
-  const cloudUrl = window.NANUCUT_CLOUD_URL || "https://huggingface.co/spaces";
-  window.open(cloudUrl, "_blank");
-}
-
-function downloadDesktopApp() {
-  window.open("https://github.com/dsurja651-tech/NANU-CLIPER/archive/refs/heads/main.zip", "_blank");
-}
-
-function launchLocalWifi() {
-  const ip = prompt("Enter your computer's local Wi-Fi IP address (default: 192.168.0.2):", "192.168.0.2");
-  if (ip) {
-    window.location.href = `http://${ip.trim()}:8765/app`;
-  }
+function closeDownloadModal() {
+  document.getElementById("downloadModal").classList.remove("open");
 }
 
 function launchClipperFromHero() {
@@ -1219,7 +1312,7 @@ function launchClipperFromHero() {
   if (url) {
     sessionStorage.setItem("nanucut_incoming_url", url);
   }
-  launchStudio();
+  downloadStudioZip();
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -1258,48 +1351,71 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>
 
-<!-- Get Studio Modal -->
-<div class="studio-modal-backdrop" id="studioModal" onclick="if(event.target===this) closeStudioModal()">
-  <div class="studio-modal-card">
-    <button class="modal-close-btn" onclick="closeStudioModal()">✕</button>
-    <div style="font-size:36px;margin-bottom:8px;">✂️</div>
-    <h2 style="font-family:'Space Grotesk',sans-serif;font-size:24px;font-weight:900;margin-bottom:6px;">
-      Get NanuCut Clipper Studio
-    </h2>
-    <p style="color:var(--text-muted);font-size:13px;">
-      100% Free Forever · No Subscription · Bring Your Own Free AI Keys
-    </p>
+<!-- Download Started & Setup Guide Modal -->
+<div class="download-modal-backdrop" id="downloadModal" onclick="if(event.target===this) closeDownloadModal()">
+  <div class="download-modal-card">
+    <button class="modal-close-btn" onclick="closeDownloadModal()">✕</button>
+    
+    <div class="download-modal-header">
+      <div class="dl-badge">
+        <span class="dl-pulse"></span>
+        <span>Download Started · NanuCutClipper.zip (1.5 MB)</span>
+      </div>
+      <h2 class="download-modal-title">How to Run NanuCut Studio in 30 Seconds</h2>
+      <p class="download-modal-sub">
+        Follow these 3 simple steps to launch your free, unlimited AI clipping studio on Windows.
+      </p>
+      <div class="redownload-bar">
+        Didn't download automatically? 
+        <a href="NanuCutClipper.zip" download="NanuCutClipper.zip">Click here to re-download ZIP</a> or 
+        <a href="https://github.com/dsurja651-tech/NANU-CLIPER/archive/refs/heads/main.zip" target="_blank">Download from GitHub</a>
+      </div>
+    </div>
 
-    <div class="modal-options-grid">
-      <!-- Option 1: Browser Cloud Web App -->
-      <div class="modal-option-box" onclick="launchWebStudio()">
-        <div class="opt-icon">🌐</div>
-        <div class="opt-info">
-          <h3>Launch in Browser (Cloud)</h3>
-          <p>Zero installation. Run free on Hugging Face Spaces with Gemini, Groq, or DeepSeek.</p>
+    <div class="steps-container">
+      <!-- Step 1 -->
+      <div class="step-card">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h4>Extract the ZIP Archive</h4>
+          <p>Go to your <span class="code-inline">Downloads</span> folder, right-click <span class="code-inline">NanuCutClipper.zip</span>, and select <b>"Extract All..."</b>.</p>
         </div>
-        <span class="btn btn-primary" style="padding:8px 16px;font-size:12px;">Launch ➔</span>
       </div>
 
-      <!-- Option 2: Download PC Studio -->
-      <div class="modal-option-box" onclick="downloadDesktopApp()">
-        <div class="opt-icon">💻</div>
-        <div class="opt-info">
-          <h3>Download for Windows PC</h3>
-          <p>Full 4K UHD rendering, local Whisper AI &amp; GPU speed. 1-Click Run (.zip).</p>
+      <!-- Step 2 -->
+      <div class="step-card">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h4>Double-Click <span class="code-inline">run.bat</span> (1-Click Run)</h4>
+          <p>Open the extracted folder and double-click <b><span class="code-inline">run.bat</span></b>. It automatically checks Python, initializes your local server, and opens your browser at <span class="code-inline">http://127.0.0.1:8765/app</span>.</p>
         </div>
-        <span class="btn btn-secondary" style="padding:8px 16px;font-size:12px;">Download</span>
       </div>
 
-      <!-- Option 3: Local Wi-Fi on Phone -->
-      <div class="modal-option-box" onclick="launchLocalWifi()">
-        <div class="opt-icon">📱</div>
-        <div class="opt-info">
-          <h3>Connect Phone to PC</h3>
-          <p>If your phone is on the same home Wi-Fi, open your PC's active studio.</p>
+      <!-- Step 3 -->
+      <div class="step-card">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h4>Add Free AI Key &amp; Start Slicing</h4>
+          <p>Paste any YouTube video URL (MrBeast, Gaming, Podcast). Enter your free Google Gemini or Groq API key in Settings, select your hook style, and click <b>Generate Clips</b>!</p>
         </div>
-        <span class="btn btn-secondary" style="padding:8px 16px;font-size:12px;">Connect</span>
       </div>
+    </div>
+
+    <!-- Wi-Fi Callout for Mobile Visitors -->
+    <div class="wifi-callout">
+      <div style="font-size:22px;">📱</div>
+      <div style="flex:1;">
+        <b>On a Mobile Phone?</b> If your computer is already running NanuCut Studio on your home Wi-Fi network, you can open it directly on your phone: <a href="http://192.168.0.2:8765/app" target="_blank">Open http://192.168.0.2:8765/app</a>
+      </div>
+    </div>
+
+    <div class="modal-footer-actions">
+      <div style="font-size:12px;color:var(--text-dim);">
+        Requirements: Windows 10/11 · 100% Free Open-Source
+      </div>
+      <button class="btn btn-primary" onclick="closeDownloadModal()" style="padding:10px 24px;font-size:13px;">
+        Got It, Let's Go! 🚀
+      </button>
     </div>
   </div>
 </div>
