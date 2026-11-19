@@ -10,7 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Inter:wght@300&family=Archivo+Black&family=Anton&family=Poppins:wght@800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --brand:#8B5CF6;--brand-press:#7C3AED;--brand-ink:#FFFFFF;--brand-soft:rgba(139,92,246,.16);--brand-line:#A78BFA;--brand-deep:#5B21B6;
+  --brand:#8B5CF6;--brand-press:#7C3AED;--brand-ink:#111827;--brand-soft:rgba(139,92,246,.16);--brand-line:#A78BFA;--brand-deep:#5B21B6;
   --frame:#0F1117;--frame-2:#1A1D27;--frame-line:rgba(255,255,255,.08);--frame-text:#F8FAFC;--frame-dim:#94A3B8;
   --bg:#FFFFFF;--muted:#F8FAFC;--line:#E2E8F0;--line-2:#CBD5E1;
   --text:#0F172A;--dim:#64748B;--faint:#94A3B8;
@@ -18,6 +18,14 @@
   --r-lg:16px;--r:12px;--r-sm:8px;
   color-scheme:light;
 }
+.btn.primary{background:var(--brand)!important;color:#FFFFFF!important;border-color:var(--brand)!important}
+.nav-item.on{background:var(--brand)!important;color:#FFFFFF!important}
+.nav-item.on svg{color:#FFFFFF!important}
+.nstep{border:1px solid var(--line-2)!important}
+.nstep input{color:#111827!important}
+.range label{border:1px solid var(--line-2)!important}
+.range input{color:#111827!important}
+.hook{color:#111827!important}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html,body{height:100%}
@@ -1685,12 +1693,23 @@ function clipHtml(j, c) {
     : c.status === "error" ? `<span class="making" style="animation:none;color:var(--bad);background:var(--bad-soft)">Could not make this clip. Open it to try again.</span>`
     : `<span class="making">${c.status === "rendering" ? "Making this clip…" : "Waiting its turn…"}</span>`;
   const key = `c:${j.id}:${c.id}`, busyClip = c.status === "queued" || c.status === "rendering";
+  const clipNum = (c.id || "").replace(/\D/g, "") || "1";
+  const durSec = (c.end - c.start).toFixed(1);
   return `<article class="clip ${sel().has(key) ? "picked" : ""}">
     <button class="shot" data-act="openclip" ${a} aria-label="Open clip: ${esc(c.title || c.hook)}">${body}
       <span class="badge l ${scoreCls(c.score)}" title="Opus Virality Score">🔥 ${c.score || "85"}</span><span class="badge r">${fmt(c.end - c.start)}</span></button>
     <div class="clip-body">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap;">
+        <span style="background:var(--brand);color:#fff;font-weight:700;font-size:10px;padding:2px 7px;border-radius:4px;letter-spacing:0.5px;">CLIP #${clipNum}</span>
+        <span style="font-size:11px;font-weight:700;color:#10B981;background:rgba(16,185,129,0.1);padding:2px 6px;border-radius:4px;">⏱️ ${fmt(c.end - c.start)} (${durSec}s)</span>
+      </div>
       <div class="hook">${esc(c.hook || "Untitled clip")}</div>
       <div class="ttl">${esc(c.title)}</div>
+      <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--dim);margin:4px 0 2px;">
+        <span>▶ Start: <b>${fmt(c.start)}</b></span>
+        <span style="color:var(--line-2)">•</span>
+        <span>⏹ End: <b>${fmt(c.end)}</b></span>
+      </div>
       ${postPills(c) ? `<div class="row" style="gap:4px">${postPills(c)}</div>` : ""}
       <div class="clip-foot">
         ${busyClip ? "" : `<label class="selck" title="Select this clip"><input type="checkbox" data-sel="${key}" ${sel().has(key) ? "checked" : ""} aria-label="Select this clip"></label>`}
@@ -2142,11 +2161,18 @@ function drawClipDlg(full) {
     dlg.innerHTML = `<div class="editor"><div class="stage" id="stage">${stage}</div>
       <div class="panel">
         <div class="job-head" style="margin:0"><div>
-          <div style="display:flex;align-items:center;gap:10px;">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
             <span class="badge ${scoreCls(c.score)}" style="position:static;font-size:13px;padding:4px 10px;border-radius:20px;">🔥 ${c.score || "85"}/100 Virality Score</span>
-            <span style="font-size:12px;color:var(--dim);font-weight:600;">Opus AI Rank #1</span>
+            <span style="background:var(--brand);color:#fff;font-size:11px;font-weight:700;padding:3px 9px;border-radius:6px;letter-spacing:0.5px;">CLIP #${(c.id||"").replace(/\D/g, "") || "1"}</span>
           </div>
-          <div class="opus-viral-box" style="background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.25);border-radius:10px;padding:12px;margin-top:10px;">
+          <div style="display:flex;align-items:center;gap:12px;margin:10px 0 6px;padding:9px 14px;background:var(--muted);border-radius:8px;font-size:13px;font-weight:600;border:1px solid var(--line-2);flex-wrap:wrap;">
+            <span>⏱️ Duration: <b style="color:#10B981">${fmt(c.end - c.start)}</b> (${(c.end - c.start).toFixed(1)}s)</span>
+            <span style="color:var(--line-2)">|</span>
+            <span>▶ Start Point: <b style="color:var(--text)">${fmt(c.start)}</b> (${c.start}s)</span>
+            <span style="color:var(--line-2)">|</span>
+            <span>⏹ End Point: <b style="color:var(--text)">${fmt(c.end)}</b> (${c.end}s)</span>
+          </div>
+          <div class="opus-viral-box" style="background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.25);border-radius:10px;padding:12px;margin-top:6px;">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
               <b style="color:var(--brand);font-size:12px;text-transform:uppercase;letter-spacing:0.5px;">✨ AI Virality Breakdown</b>
               <span style="font-size:11px;color:#10B981;font-weight:600;">High Retention (94%)</span>
@@ -2159,8 +2185,8 @@ function drawClipDlg(full) {
         <label class="sw"><input type="checkbox" data-f="captions" data-caption-toggle ${c.captions === false ? "" : "checked"}>Generate captions</label>
         <div class="two"><label class="f">Caption style<select data-f="style" data-caption-style ${c.captions === false ? "disabled" : ""}>${opts(S.status.styles, c.style)}</select></label>
           <label class="f">Layout<select data-f="layout">${opts(S.status.layouts, c.layout)}</select></label></div>
-        <div class="two"><label class="f">Start (seconds)<input data-f="start" type="number" step="0.5" value="${c.start}"></label>
-          <label class="f">End (seconds)<input data-f="end" type="number" step="0.5" value="${c.end}"></label></div>
+        <div class="two"><label class="f">Start Point (${fmt(c.start)})<input data-f="start" type="number" step="0.5" value="${c.start}"></label>
+          <label class="f">End Point (${fmt(c.end)})<input data-f="end" type="number" step="0.5" value="${c.end}"></label></div>
         <h3>Post text</h3>
         <label class="f">Title<input data-f="title" value="${esc(c.title)}"></label>
         <label class="f">Description<textarea data-f="description" rows="2">${esc(c.description)}</textarea></label>
