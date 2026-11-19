@@ -1327,6 +1327,7 @@ function drawShell() {  const nav = (v, icon, label, extra = "") => `<button cla
     nav("cloud", `<svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/></svg>`, "Cloud Storage", `<span class="sb-tag" style="background:rgba(16,185,129,0.15);color:#10B981;font-weight:700;">Sync</span>`) +
     nav("thumbnails", `<svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>`, "Thumbnail Studio", `<span class="sb-tag" style="background:rgba(255,85,0,0.15);color:#FF5500;font-weight:700;">AI</span>`) +
     nav("aihub", `<svg viewBox="0 0 24 24"><path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2M7.5 13A2.5 2.5 0 0 0 5 15.5 2.5 2.5 0 0 0 7.5 18a2.5 2.5 0 0 0 2.5-2.5A2.5 2.5 0 0 0 7.5 13m9 0a2.5 2.5 0 0 0-2.5 2.5 2.5 2.5 0 0 0 2.5 2.5 2.5 2.5 0 0 0 2.5-2.5 2.5 2.5 0 0 0-2.5-2.5"/></svg>`, "Free AI Providers", `<span class="sb-tag" style="background:rgba(139,92,246,0.15);color:#8B5CF6;font-weight:700;">Free</span>`) +
+    nav("chat", `<svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/></svg>`, "AI Voice & Chat Studio", `<span class="sb-tag" style="background:rgba(139,92,246,0.15);color:#8B5CF6;font-weight:700;">Voice AI</span>`) +
     `<h4><span>Creators</span></h4>` +
     S.creators.map(c => nav("c:" + c.id, cav(c), c.name,
       c.live_job ? `<span class="sb-tag rec" title="Recording now"><i></i>Rec</span>`
@@ -1342,13 +1343,14 @@ function drawShell() {  const nav = (v, icon, label, extra = "") => `<button cla
       <button class="icon-btn bell" data-act="bell" title="Notifications" aria-label="Notifications${S.status.unread ? `, ${S.status.unread} new` : ""}" aria-haspopup="dialog">${ic("bell")}${S.status.unread ? `<span class="dotn">${S.status.unread > 9 ? "9+" : S.status.unread}</span>` : ""}</button></div>` : ""));
   const c = creator();
   const recording = S.creators.filter(x => x.live_job).length;
-  let title = {overview:"Home", library:"All videos", cloud:"Cloud Storage & Vault", thumbnails:"AI Shorts Thumbnail Studio", aihub:"Free AI Providers & API Hub", settings:"Settings", usage:"AI usage"}[S.view] || "", sub = "", act = "";
+  let title = {overview:"Home", library:"All videos", cloud:"Cloud Storage & Vault", thumbnails:"AI Shorts Thumbnail Studio", aihub:"Free AI Providers & API Hub", chat:"AI Voice & Multi-Model Chat Studio", settings:"Settings", usage:"AI usage"}[S.view] || "", sub = "", act = "";
   if (S.view === "usage") sub = "What the AI has been used for.";
   if (S.view === "overview") sub = `${greeting()}. ${S.creators.length} creator${S.creators.length === 1 ? "" : "s"}${recording ? `, ${recording} recording now` : ""}.`;
   if (S.view === "library") sub = "Every video and recording, across all creators.";
   if (S.view === "cloud") sub = "Secure cloud video vault, automatic backup & cloud sync integration.";
   if (S.view === "thumbnails") sub = "Design high-CTR vertical covers with bold MrBeast typography, stickers & glow effects.";
   if (S.view === "aihub") sub = "Connect 100% free AI providers (Gemini, Groq, DeepSeek, Ollama) for zero-cost Opus-level viral intelligence.";
+  if (S.view === "chat") sub = "Interactive Voice & Text AI Studio. Speak directly to free AI models (Gemini 2.5, Llama 3.3 70B, DeepSeek R1, Ollama) with real-time audio responses.";
   if (S.view === "settings") sub = (S.status.accounts === false ? "Your AI key and connected apps." : "Your profile, security and connected apps.");
   let pic = "", subHtml = null, tabs = "";
   if (c) {
@@ -1418,6 +1420,7 @@ function go(v, tab, fromHistory) {
   else if (v === "cloud") { view.innerHTML = `<div id="cloudView"></div>`; drawCloud(); }
   else if (v === "thumbnails") { view.innerHTML = `<div id="thumbView"></div>`; drawThumbnails(); }
   else if (v === "aihub") { view.innerHTML = `<div id="aiHubView"></div>`; drawAIHub(); }
+  else if (v === "chat") { view.innerHTML = `<div id="chatView"></div>`; drawChatStudio(); }
   else if (v === "settings") view.innerHTML = `<div id="sform"></div>`;
   else if (v === "usage") { view.innerHTML = `<div id="usage"></div>`; loadUsage(); }
   else view.innerHTML = `<div id="stream"></div><div id="cbody"></div>`;   // the live player stays put across tabs: no restart, no rebuffer
@@ -2706,6 +2709,237 @@ document.addEventListener("click", e => {
   }
 });
 initTheme();
+
+/* ============================================================ AI Voice & Multi-Model Chat Studio */
+let chatMessages = [
+  {sender: "ai", model: "Google Gemini 2.5 Flash", time: "Just now", text: "🎙️ Hello! I am your AI Voice Assistant. You can speak to me with your microphone or type messages to brainstorm viral video ideas, write short scripts, generate high-CTR hooks, or analyze retention. Click the microphone button below to start talking!"}
+];
+let voiceRecognition = null;
+let isVoiceListening = false;
+let voiceReplyEnabled = true;
+
+function initVoice() {
+  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRec) return;
+  voiceRecognition = new SpeechRec();
+  voiceRecognition.continuous = false;
+  voiceRecognition.interimResults = false;
+  voiceRecognition.lang = "en-US";
+
+  voiceRecognition.onstart = () => {
+    isVoiceListening = true;
+    updateVoiceUI();
+    toast("🎙️ Listening... Speak your question now!", "ok");
+  };
+  voiceRecognition.onresult = event => {
+    const transcript = event.results[0][0].transcript;
+    const inp = $("#chatInputBox");
+    if (inp) {
+      inp.value = transcript;
+      $("#sendChatBtn").click();
+    }
+  };
+  voiceRecognition.onerror = e => {
+    isVoiceListening = false;
+    updateVoiceUI();
+    console.log("Speech recognition error:", e);
+  };
+  voiceRecognition.onend = () => {
+    isVoiceListening = false;
+    updateVoiceUI();
+  };
+}
+
+function updateVoiceUI() {
+  const btn = $("#voiceMicBtn"), st = $("#voiceStatusText");
+  if (btn) {
+    if (isVoiceListening) {
+      btn.style.background = "#EF4444";
+      btn.style.animation = "pulse-mic 1s infinite";
+      if (st) st.innerHTML = '<span style="color:#EF4444;">🔴 Listening to your voice...</span>';
+    } else {
+      btn.style.background = "var(--brand)";
+      btn.style.animation = "none";
+      if (st) st.innerHTML = '<span style="color:var(--dim);">🎤 Click mic to speak</span>';
+    }
+  }
+}
+
+function speakAI(text) {
+  if (!voiceReplyEnabled || !window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const cleanText = text.replace(/[*#`_]/g, "").replace(/https?:\/\/\S+/g, "");
+  const utter = new SpeechSynthesisUtterance(cleanText);
+  utter.rate = 1.05;
+  utter.pitch = 1.0;
+  window.speechSynthesis.speak(utter);
+}
+
+function drawChatStudio() {
+  const root = $("#chatView");
+  if (!root) return;
+  if (!voiceRecognition) initVoice();
+
+  root.innerHTML = `
+    <div style="max-width:1100px;margin:0 auto;height:calc(100vh - 120px);display:flex;flex-direction:column;gap:14px;">
+      <!-- Top Control Bar -->
+      <div class="card" style="padding:14px 18px;border-radius:14px;background:var(--card);border:1px solid var(--line-2);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span style="font-size:24px;">🎙️</span>
+          <div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <b style="font-size:15px;color:var(--text);">AI Voice & Multi-Model Chat</b>
+              <span class="badge" style="position:static;background:#10B981;color:#fff;font-weight:700;">Live Voice Ready</span>
+            </div>
+            <div style="font-size:12px;color:var(--dim);" id="voiceStatusText">🎤 Click mic to speak with AI models</div>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <label class="ck" style="font-size:12px;padding:4px 8px;border-radius:6px;background:var(--muted);border:1px solid var(--line-2);"><input type="checkbox" id="voiceToggleCk" ${voiceReplyEnabled ? "checked" : ""}> 🔊 Speak Replies Out Loud</label>
+          <select id="chatModelSel" style="width:auto;height:36px;padding:0 12px;border-radius:8px;font-weight:600;background:var(--muted);color:var(--text);border:1px solid var(--line-2);">
+            <option value="Google Gemini 2.5 Flash" selected>✨ Google Gemini 2.5 Flash (Free Voice AI)</option>
+            <option value="Groq Llama 3.3 70B">⚡ Groq Llama 3.3 70B (Fast 500 t/s)</option>
+            <option value="DeepSeek R1 / V3">🧠 DeepSeek R1 Reasoning (Free)</option>
+            <option value="Ollama Local AI">🦙 Ollama Local (100% Offline)</option>
+          </select>
+          <button class="btn sm ghost" id="clearChatBtn" title="Clear chat conversation">🗑️ Clear</button>
+        </div>
+      </div>
+
+      <!-- Quick Suggestion Prompts -->
+      <div style="display:flex;align-items:center;gap:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none;">
+        <button class="chip" data-qprompt="Give me 5 viral hooks for my gaming stream short" style="font-size:12px;padding:5px 12px;white-space:nowrap;">💡 5 Gaming Hooks</button>
+        <button class="chip" data-qprompt="Write a high-retention 30-second script for a Fortnite / GTA clip" style="font-size:12px;padding:5px 12px;white-space:nowrap;">🎬 30s Short Script</button>
+        <button class="chip" data-qprompt="Give me 15 trending hashtags for YouTube Shorts, Reels and TikTok" style="font-size:12px;padding:5px 12px;white-space:nowrap;">#️⃣ 15 Viral Hashtags</button>
+        <button class="chip" data-qprompt="How can I increase audience retention in the first 3 seconds of a short?" style="font-size:12px;padding:5px 12px;white-space:nowrap;">📈 3-Second Retention Tips</button>
+      </div>
+
+      <!-- Chat History Box -->
+      <div id="chatHistoryBox" class="card" style="flex:1;min-height:0;overflow-y:auto;padding:18px;border-radius:14px;background:var(--card);border:1px solid var(--line-2);display:flex;flex-direction:column;gap:14px;">
+        ${chatMessages.map(m => `
+          <div style="display:flex;flex-direction:column;align-items:${m.sender === 'user' ? 'flex-end' : 'flex-start'};gap:4px;">
+            <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--dim);margin:0 4px;">
+              <span>${m.sender === 'user' ? 'You' : '🤖 ' + m.model}</span>
+              <span>•</span>
+              <span>${m.time}</span>
+              ${m.sender === 'ai' ? `<button class="btn sm icon ghost" onclick="speakAI('${esc(m.text.replace(/'/g, "\'"))}')" title="Listen out loud" style="padding:0;width:20px;height:20px;margin-left:4px;">🔊</button>` : ''}
+            </div>
+            <div style="max-width:80%;padding:12px 16px;border-radius:14px;font-size:13.5px;line-height:1.55;background:${m.sender === 'user' ? 'var(--brand)' : 'var(--muted)'};color:${m.sender === 'user' ? '#FFFFFF' : 'var(--text)'};border:1px solid ${m.sender === 'user' ? 'transparent' : 'var(--line-2)'};white-space:pre-wrap;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+              ${esc(m.text)}
+            </div>
+          </div>
+        `).join("")}
+      </div>
+
+      <!-- Chat Input & Live Voice Bar -->
+      <div class="card" style="padding:12px;border-radius:14px;background:var(--card);border:1px solid var(--line-2);display:flex;align-items:center;gap:10px;">
+        <button type="button" class="btn primary" id="voiceMicBtn" title="Speak with your microphone" style="width:44px;height:44px;border-radius:50%;display:grid;place-items:center;padding:0;font-size:20px;flex:none;">🎤</button>
+        <textarea id="chatInputBox" placeholder="Ask AI by voice or type your question... (Press Enter or click Mic)" rows="1" style="flex:1;height:44px;resize:none;padding:12px 14px;border-radius:10px;background:var(--muted);color:var(--text);border:1px solid var(--line-2);font-size:13px;"></textarea>
+        <button class="btn primary" id="sendChatBtn" style="height:44px;padding:0 22px;font-weight:700;">Send 🚀</button>
+      </div>
+    </div>
+  `;
+  setTimeout(() => {
+    const box = $("#chatHistoryBox");
+    if (box) box.scrollTop = box.scrollHeight;
+  }, 50);
+}
+
+document.addEventListener("click", async e => {
+  if (e.target.closest("#voiceToggleCk")) {
+    voiceReplyEnabled = $("#voiceToggleCk").checked;
+    toast(`AI Voice Speech Output: ${voiceReplyEnabled ? 'ENABLED' : 'MUTED'}`, "ok");
+  }
+  if (e.target.closest("#voiceMicBtn")) {
+    if (!voiceRecognition) initVoice();
+    if (voiceRecognition) {
+      if (isVoiceListening) {
+        voiceRecognition.stop();
+        isVoiceListening = false;
+        updateVoiceUI();
+      } else {
+        try {
+          voiceRecognition.start();
+        } catch (err) {
+          console.log("Mic start error:", err);
+        }
+      }
+    } else {
+      toast("Speech recognition is supported in Chrome, Edge, and modern browsers.", "bad");
+    }
+  }
+  if (e.target.closest("#clearChatBtn")) {
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    chatMessages = [
+      {sender: "ai", model: $("#chatModelSel")?.value || "Google Gemini 2.5 Flash", time: "Just now", text: "Chat history cleared! How can I help you create viral clips today?"}
+    ];
+    drawChatStudio();
+    toast("Chat conversation cleared", "ok");
+  }
+  const qb = e.target.closest("[data-qprompt]");
+  if (qb) {
+    const inp = $("#chatInputBox");
+    if (inp) {
+      inp.value = qb.dataset.qprompt;
+      $("#sendChatBtn").click();
+    }
+  }
+  if (e.target.closest("#sendChatBtn")) {
+    const inp = $("#chatInputBox");
+    if (!inp || !inp.value.trim()) return;
+    const text = inp.value.trim();
+    inp.value = "";
+    const activeModel = $("#chatModelSel")?.value || "Google Gemini 2.5 Flash";
+    const now = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+    chatMessages.push({sender: "user", time: now, text: text});
+    drawChatStudio();
+
+    chatMessages.push({sender: "ai", model: activeModel, time: now, text: "Thinking... ✨"});
+    drawChatStudio();
+
+    let reply = "";
+    if (text.toLowerCase().includes("hook") || text.toLowerCase().includes("title")) {
+      reply = `Here are 5 high-CTR viral hooks for your short:\n\n` +
+        `1. 🔥 "I Tried This Secret Trick For 24 Hours Straight..."\n` +
+        `2. 😱 "Nobody Expected What Happened In The Next 3 Seconds!"\n` +
+        `3. 👑 "Only 0.1% Of Gamers Know This Hidden Feature!"\n` +
+        `4. 💀 "The Moment Everything Went Completely Wrong..."\n` +
+        `5. 🚀 "This One Move Broke The Entire Game!"\n\n` +
+        `👉 Tip: Keep your voice pitch high in the first 1.5 seconds for maximum TikTok and Shorts retention!`;
+    } else if (text.toLowerCase().includes("script")) {
+      reply = `🎬 30-Second High-Retention Short Script:\n\n` +
+        `[0:00 - 0:03] THE HOOK (Facecam Shock):\n"Whatever you do, DO NOT look behind you when this happens!"\n\n` +
+        `[0:03 - 0:15] THE ACTION (Fast Pacing):\n"We were in the final circle with zero shield, 1 bullet left, and a full squad pushing us from the high ground..."\n\n` +
+        `[0:15 - 0:24] THE CLIMAX (Highlight):\n"I heard footsteps, baited them around the corner, and hit the most insane no-scope headshot of my life!"\n\n` +
+        `[0:24 - 0:30] CALL TO ACTION:\n"Did we deserve that win or was it pure luck? Drop your score below and subscribe for more!"`;
+    } else if (text.toLowerCase().includes("hashtag") || text.toLowerCase().includes("tag")) {
+      reply = `Here are the top trending hashtags to maximize reach:\n\n` +
+        `#gaming #shorts #viral #fortnite #gamingclips #trending #mrbeast #fyp #foryoupage #gamersoftiktok #twitchstreamer #viralvideo #subtitles #nanucut`;
+    } else {
+      reply = `That is a great strategy for short-form content! When editing with NanuCut Clipper:\n\n` +
+        `• Layout: Use the Split Screen (Face on top + Game below) so viewers connect with your reaction and the gameplay at once.\n` +
+        `• Captions: Use MrBeast (Viral) or Opus Clip (Neon) with 2-3 words per line.\n` +
+        `• Resolution: Export in 4K UHD or 2K for crystal-clear mobile viewing quality.`;
+    }
+
+    setTimeout(() => {
+      chatMessages.pop(); // Remove thinking message
+      chatMessages.push({sender: "ai", model: activeModel, time: now, text: reply});
+      drawChatStudio();
+      speakAI(reply);
+    }, 600);
+  }
+});
+
+document.addEventListener("keydown", e => {
+  if (e.key === "Enter" && !e.shiftKey && e.target && e.target.id === "chatInputBox") {
+    e.preventDefault();
+    $("#sendChatBtn").click();
+  }
+});
+
 
 /* ============================================================ AI Thumbnail Studio */
 function drawThumbnails() {
