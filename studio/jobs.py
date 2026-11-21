@@ -109,7 +109,9 @@ on_clip_ready: list = []   # callbacks (job, clip), run once when a clip first f
 
 DEFAULTS = {"max_clips": 6, "min_len": 15, "max_len": 60, "style": "bounce", "layout": "blur", "quality": 720,
             "range_start": None, "range_end": None, "captions": True,
-            "top_text": True, "top_text_mode": "viral_hook", "custom_top_text": ""}
+            "top_text": True, "top_text_mode": "viral_hook", "custom_top_text": "",
+            "hook_strategy": "story", "detect_emotions": True, "detect_funny": True,
+            "detect_crazy": True, "fast_3s_hook": True, "hook_variations": True}
 
 
 LIMITS = {"max_clips": (1, 20), "min_len": (5, 120), "max_len": (10, 180), "quality": (360, 2160)}
@@ -119,8 +121,11 @@ def clean_options(options) -> dict:
     """Only known settings, each inside its allowed range. Raises ValueError on nonsense."""
     out = {}
     for k, v in (options if isinstance(options, dict) else {}).items():
-        if k in ("captions", "top_text"):
+        if k in ("captions", "top_text", "detect_emotions", "detect_funny", "detect_crazy", "fast_3s_hook", "hook_variations"):
             out[k] = bool(v)
+            continue
+        if k == "hook_strategy":
+            out[k] = str(v) if v in ("story", "emotion", "funny", "crazy", "fast_3s") else "story"
             continue
         if k == "top_text_mode":
             out[k] = str(v) if v in ("viral_hook", "video_title", "custom", "none") else "viral_hook"
@@ -481,7 +486,7 @@ def _english_part(job, clip):
     return [w for w in en if clip["start"] - 0.5 <= w["s"] <= clip["end"] + 0.5]
 
 
-LONG_VIDEO = 40 * 60   # above this, fetch only the pieces that become clips
+LONG_VIDEO = 8 * 60    # above 8 min, fetch only the pieces that become clips (ultra-fast)
 PAD = 8                # seconds kept either side of a fetched piece, so clips can be re-trimmed
 
 
@@ -679,9 +684,9 @@ def _run_job(job):
                 f = _facecam(job)
                 if f:
                     clip["facecam"] = f
-        if clip["status"] != "error" and clip.get("captions", True) and yt and yt[1].lower().startswith("en"):
-            # The clip was found with YouTube's transcript. What is shown on screen comes from our own model,
-            # run on just this clip: full punctuation, nothing blanked out, timings to the word.
+        clip_words = [w for w in (words_now or []) if clip["start"] - 0.5 <= w.get("s", 0) <= clip["end"] + 0.5]
+        if clip["status"] != "error" and clip.get("captions", True) and len(clip_words) < 3:
+            # Re-transcribe with local model only when word timestamps are missing or incomplete
             a0, b0 = max(lo, int((clip["start"] - 1.5) * 16000)), min(hi, int((clip["end"] + 1.5) * 16000))
             try:
                 tw = [dict(w, s=round(w["s"] + a0 / 16000, 2), e=round(w["e"] + a0 / 16000, 2)) for w in transcribe.transcribe(audio[a0:b0])]
@@ -694,7 +699,7 @@ def _run_job(job):
             render_one(job, clip, words_now)
 
     cpus = os.cpu_count() or 4
-    renders = ThreadPoolExecutor(2 if cpus < 8 else min(6, cpus // 6))  # more clips made at once on a bigger machine
+    renders = ThreadPoolExecutor(min(6, max(3, cpus // 3)))  # fast parallel renders: 4 clips rendered at once on 12 cores
     futures = []
     step = BLOCK * 16000 if span > PROGRESSIVE_FROM else hi - lo
     blocks = [(x, min(hi, x + step)) for x in range(lo, hi, step)] or [(lo, hi)]
@@ -770,7 +775,13 @@ def _run_job(job):
         quota = max(1, math.ceil(left / (len(blocks) - bi)))
         s0 = int((a - lo) / 16000)
         found, ai = brain.find_clips(bw, db[s0: s0 + int((b - a) / 16000) + 1], (b - a) / 16000, job["title"],
-                                     job["uploader"], quota, int(o["min_len"]), int(o["max_len"]), notes.append, game=game)
+                                     job["uploader"], quota, int(o["min_len"]), int(o["max_len"]), notes.append, game=game,
+                                     hook_strategy=o.get("hook_strategy", "story"),
+                                     detect_emotions=o.get("detect_emotions", True),
+                                     detect_funny=o.get("detect_funny", True),
+                                     detect_crazy=o.get("detect_crazy", True),
+                                     fast_3s_hook=o.get("fast_3s_hook", True),
+                                     hook_variations=o.get("hook_variations", True))
         tokens += ai.get("tokens", 0)
         model = ai.get("model") or model
         if ai.get("note"):

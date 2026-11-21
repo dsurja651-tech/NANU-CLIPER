@@ -100,7 +100,8 @@ def _ydl(opts):
     # a channel or playlist link is answered as "a list" straight away, never walked video by video
     return yt_dlp.YoutubeDL({"noplaylist": True, "quiet": True, "no_warnings": True, "logger": _Quiet(),
                              "extract_flat": "in_playlist", "playlistend": 1, "socket_timeout": 20,
-                             "concurrent_fragment_downloads": 4, **opts})
+                             "concurrent_fragment_downloads": 8, "buffersize": 1024 * 1024,
+                             "http_chunk_size": 10485760, **opts})
 
 
 def _video_format(height):
@@ -126,17 +127,28 @@ def info(url: str) -> dict:
 
 def youtube_words(url: str):
     """YouTube's own transcript of a video, word by word: ([{'w', 's', 'e'}, ...], language), or None if the video
-    has none. Only the transcript in the language that was spoken is used, never a translation."""
+    has none. Checks both human subtitles and auto-captions for lightning-fast transcript fetching."""
     if not is_youtube(url):
         return None
     import json
     with _youtube_guard(url), _ydl({}) as ydl:
         i = ydl.extract_info(url, download=False)
+        subs = i.get("subtitles") or {}
         auto = i.get("automatic_captions") or {}
-        key = next((k for k in auto if k.endswith("-orig")), None)
-        if not key and i.get("language") in auto:
+        # Merge, prioritizing human subtitles over automatic captions
+        merged = {**auto, **subs}
+        # Look for original spoken language, then video language, then common languages, then any available track
+        key = next((k for k in merged if k.endswith("-orig")), None)
+        if not key and i.get("language") in merged:
             key = i["language"]
-        track = next((f for f in auto.get(key) or [] if f.get("ext") == "json3" and f.get("url")), None) if key else None
+        if not key:
+            for k in ("en", "hi", "en-US", "en-GB", "es"):
+                if k in merged:
+                    key = k
+                    break
+        if not key and merged:
+            key = next(iter(merged.keys()))
+        track = next((f for f in merged.get(key) or [] if f.get("ext") == "json3" and f.get("url")), None) if key else None
         if not track:
             return None
         raw = ydl.urlopen(track["url"]).read(40_000_000)
@@ -310,7 +322,7 @@ def probe(path: Path) -> dict:
 def extract_audio(src: Path, wav: Path):
     # first_pts=0 pads any gap before the audio starts, so second 0 of the wav is second 0 of the file
     # -t: never more audio than the longest video allowed, whatever the file claims about itself
-    run(["ffmpeg", "-y", "-v", "error", "-i", str(src), "-vn", "-ac", "1", "-ar", "16000", "-t", str(int(config.MAX_VIDEO_HOURS * 3600) + 60),
+    run(["ffmpeg", "-y", "-v", "error", "-threads", "0", "-i", str(src), "-vn", "-ac", "1", "-ar", "16000", "-t", str(int(config.MAX_VIDEO_HOURS * 3600) + 60),
          "-af", "aresample=async=1:first_pts=0", "-c:a", "pcm_s16le", str(wav)])
 
 

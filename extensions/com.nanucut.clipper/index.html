@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NanuCut Clipper - Premiere Pro Panel</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/CSInterface.js"></script>
+</head>
+<body>
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="brand-wrap">
+      <div class="brand-logo">✂️</div>
+      <div class="brand-text">
+        <h1>NanuCut Clipper</h1>
+        <span>AI Viral Shorts Studio</span>
+      </div>
+    </div>
+    <div class="top-acts">
+      <button class="btn sm" onclick="reloadStudio()" title="Reload Clipper">🔄 Refresh</button>
+      <button class="btn sm" onclick="openExternal()" title="Open in Chrome / Browser">🌐 Browser</button>
+    </div>
+  </header>
+
+  <!-- Premiere Pro Live Bridge -->
+  <div class="ppro-bar">
+    <div class="ppro-status">
+      <div class="dot" id="pproDot"></div>
+      <span id="pproStatusText">Checking Premiere Pro...</span>
+    </div>
+    <div class="ppro-acts">
+      <button class="btn primary sm" onclick="importLatestClips()" title="Import all rendered clips to Premiere Project Bin">📥 Import to Project</button>
+    </div>
+  </div>
+
+  <!-- Studio Frame -->
+  <div class="studio-frame-wrap">
+    <iframe id="studioFrame" src="http://127.0.0.1:8765/app"></iframe>
+    <div class="offline-card" id="offlineCard">
+      <h2>🔌 NanuCut Clipper Server Offline</h2>
+      <p>The local Clipper server is not currently running on port 8765. Please start NanuCut Clipper on your PC.</p>
+      <button class="btn primary" onclick="checkServerAndReload()">⚡ Check Connection & Retry</button>
+    </div>
+  </div>
+
+  <script>
+    const cs = new CSInterface();
+    const STUDIO_URL = "http://127.0.0.1:8765";
+
+    function updatePproStatus() {
+      cs.evalScript("$._nanuCut.getProjectStatus()", function(result) {
+        try {
+          const res = JSON.parse(result);
+          const txt = document.getElementById("pproStatusText");
+          const dot = document.getElementById("pproDot");
+          if (res.ok) {
+            txt.textContent = "Premiere: " + res.projectName + (res.hasActiveSequence ? " (" + res.activeSequence + ")" : "");
+            dot.style.background = "#10B981";
+            dot.style.boxShadow = "0 0 6px #10B981";
+          } else {
+            txt.textContent = "Premiere Pro: Open a Project";
+            dot.style.background = "#F59E0B";
+            dot.style.boxShadow = "0 0 6px #F59E0B";
+          }
+        } catch(e) {
+          document.getElementById("pproStatusText").textContent = "Premiere Pro Active";
+        }
+      });
+    }
+
+    async function checkServer() {
+      try {
+        const resp = await fetch(STUDIO_URL + "/api/status", { method: "GET" });
+        if (resp.ok) {
+          document.getElementById("offlineCard").classList.remove("show");
+          return true;
+        }
+      } catch(e) {}
+      document.getElementById("offlineCard").classList.add("show");
+      return false;
+    }
+
+    function reloadStudio() {
+      const frame = document.getElementById("studioFrame");
+      frame.src = STUDIO_URL + "/app?t=" + Date.now();
+      updatePproStatus();
+    }
+
+    function checkServerAndReload() {
+      checkServer().then(ok => {
+        if (ok) reloadStudio();
+      });
+    }
+
+    function openExternal() {
+      if (window.require) {
+        try {
+          const { shell } = window.require("electron");
+          shell.openExternal(STUDIO_URL + "/app");
+          return;
+        } catch(e) {}
+      }
+      window.open(STUDIO_URL + "/app", "_blank");
+    }
+
+    async function importLatestClips() {
+      try {
+        const syncResp = await fetch(STUDIO_URL + "/api/sync");
+        if (!syncResp.ok) throw new Error("Could not fetch clips from server.");
+        const data = await syncResp.json();
+        const jobs = data.jobs || [];
+        
+        let clipPaths = [];
+        for (const j of jobs) {
+          const clips = j.clips || [];
+          for (const c of clips) {
+            if (c.status === "done" && c.file) {
+              // Path on disk
+              const diskPath = (j.dir + "\\clips\\" + c.file).replace(/\//g, "\\");
+              clipPaths.push(diskPath);
+            }
+          }
+        }
+
+        if (clipPaths.length === 0) {
+          alert("No completed clips found yet. Generate clips in the panel below first!");
+          return;
+        }
+
+        // Limit to most recent 10 clips to avoid overwhelming
+        const toImport = clipPaths.slice(-10);
+        const jsonStr = JSON.stringify(toImport).replace(/"/g, '\\"');
+        
+        cs.evalScript('$._nanuCut.importFilesToProject("' + jsonStr + '")', function(resStr) {
+          try {
+            const res = JSON.parse(resStr);
+            if (res.ok) {
+              alert("✅ Success! " + res.count + " vertical short clip(s) imported directly into your Premiere Pro Project Bin!");
+            } else {
+              alert("Import response: " + (res.error || res.message));
+            }
+          } catch(e) {
+            alert("Clips imported into Premiere Pro Project Bin.");
+          }
+        });
+      } catch(err) {
+        alert("Import failed: " + err.message);
+      }
+    }
+
+    // Initialize
+    updatePproStatus();
+    checkServer();
+    setInterval(updatePproStatus, 8000);
+  </script>
+</body>
+</html>
