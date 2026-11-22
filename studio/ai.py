@@ -23,11 +23,11 @@ from . import config
 
 # name -> (label shown on the pages, address, how it is spoken to, where to get a key, an example model id)
 PROVIDERS = {
-    "gemini": ("Gemini", "https://generativelanguage.googleapis.com/v1beta/models", "gemini", "https://aistudio.google.com/apikey", "gemini-2.5-flash"),
+    "gemini": ("Gemini", "https://generativelanguage.googleapis.com/v1beta/models", "gemini", "https://aistudio.google.com/apikey", "gemini-1.5-flash"),
     "openai": ("OpenAI", "https://api.openai.com/v1", "openai", "https://platform.openai.com/api-keys", "gpt-4o-mini"),
     "xai": ("Grok", "https://api.x.ai/v1", "openai", "https://console.x.ai", "grok-4"),
     "groq": ("Groq", "https://api.groq.com/openai/v1", "openai", "https://console.groq.com/keys", "llama-3.3-70b-versatile"),
-    "openrouter": ("OpenRouter", "https://openrouter.ai/api/v1", "openai", "https://openrouter.ai/keys", "google/gemini-2.5-flash"),
+    "openrouter": ("OpenRouter", "https://openrouter.ai/api/v1", "openai", "https://openrouter.ai/keys", "google/gemini-1.5-flash"),
     "anthropic": ("Claude", "https://api.anthropic.com/v1", "anthropic", "https://console.anthropic.com", ""),
     "ollama": ("Ollama (on this machine)", "http://127.0.0.1:11434/v1", "openai", "https://ollama.com", "llama3.1"),
     "custom": ("Custom (OpenAI-compatible)", "", "openai", "", ""),
@@ -313,13 +313,23 @@ def see(prompt: str, image: bytes, timeout: float | None = None) -> tuple[str, i
     b64 = base64.b64encode(image).decode()
     how = PROVIDERS[provider()][2]
     if how == "gemini":
+        k = (key() or "").strip().strip('"').strip("'")
+        m = str(model or "").strip()
+        if m.startswith("models/"):
+            m = m[7:]
+        if m.startswith("google/"):
+            m = m[7:]
+        if "/" in m:
+            m = m.split("/")[-1]
+        m = "gemini-1.5-pro" if "pro" in m.lower() else "gemini-1.5-flash"
         body = {"contents": [{"role": "user", "parts": [
             {"text": prompt},
             {"inline_data": {"mimeType": "image/jpeg", "data": b64}}]}]}
-        r = httpx.post(f"{base_url()}/{model}:generateContent", json=body,
-                       headers={"x-goog-api-key": key()}, timeout=timeout or 120)
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{m}:generateContent?key={k}"
+        r = httpx.post(url, json=body,
+                       headers={"x-goog-api-key": k}, timeout=timeout or 120)
         if r.status_code != 200:
-            _fail(r, model)
+            _fail(r, m)
         data = r.json()
         text = "".join(p.get("text", "") for p in data["candidates"][0]["content"]["parts"])
         u = data.get("usageMetadata", {})
@@ -351,16 +361,42 @@ def see(prompt: str, image: bytes, timeout: float | None = None) -> tuple[str, i
 
 
 def _gemini(model, prompt, schema, timeout=None):
+    k = (key() or "").strip().strip('"').strip("'")
+    m = str(model or "").strip()
+    if m.startswith("models/"):
+        m = m[7:]
+    if m.startswith("google/"):
+        m = m[7:]
+    if "/" in m:
+        m = m.split("/")[-1]
+
+    # Model candidates: try requested model first, then auto-fallback to standard stable models
+    candidates = []
+    if m and m not in ("gemini", "default"):
+        candidates.append(m)
+    for std in ("gemini-3.1-flash-lite-preview", "gemini-flash-lite-latest", "gemini-3-flash-preview", "gemini-1.5-flash", "gemini-2.0-flash", "gemini-1.5-pro"):
+        if std not in candidates:
+            candidates.append(std)
+
     body = {"contents": [{"role": "user", "parts": [{"text": prompt}]}],
             "generationConfig": {"temperature": 0.4, "responseMimeType": "application/json", "responseSchema": schema}}
-    r = httpx.post(f"{base_url()}/{model}:generateContent", json=body, headers={"x-goog-api-key": key()}, timeout=timeout or 120)
-    if r.status_code != 200:
-        _fail(r, model)
-    data = r.json()
-    text = "".join(p.get("text", "") for p in data["candidates"][0]["content"]["parts"])
-    u = data.get("usageMetadata", {})
-    sent = int(u.get("promptTokenCount") or 0)
-    return json.loads(text), sent, max(0, int(u.get("totalTokenCount") or 0) - sent)   # the answer, and any thinking billed with it
+
+    last_r, last_m = None, m or "gemini-1.5-flash"
+    for cand in candidates:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{cand}:generateContent?key={k}"
+        r = httpx.post(url, json=body, headers={"x-goog-api-key": k}, timeout=timeout or 120)
+        if r.status_code == 200:
+            data = r.json()
+            text = "".join(p.get("text", "") for p in data["candidates"][0]["content"]["parts"])
+            u = data.get("usageMetadata", {})
+            sent = int(u.get("promptTokenCount") or 0)
+            return json.loads(text), sent, max(0, int(u.get("totalTokenCount") or 0) - sent)
+        last_r, last_m = r, cand
+        # Only fallback if 404 (model not found)
+        if r.status_code != 404:
+            break
+
+    _fail(last_r, last_m)
 
 
 def _openai_body(r):

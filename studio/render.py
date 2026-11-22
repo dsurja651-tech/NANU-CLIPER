@@ -14,6 +14,8 @@ W, H = config.OUT_W, config.OUT_H
 STYLES = {
     "opus": {"label": "Opus Clip (Neon)", "font": "Poppins ExtraBold", "size": 136, "base": "FFFFFF", "active": "00FF66",
              "strong": "00FFFF", "outline": 8, "pop": 120, "upper": True, "per": 3},
+    "glow": {"label": "Neon Glow (Viral)", "font": "Poppins ExtraBold", "size": 138, "base": "FFFFFF", "active": "00FFFF",
+             "strong": "FF00FF", "outline": 9, "glow": True, "pop": 124, "upper": True, "per": 2},
     "beast": {"label": "MrBeast (Viral)", "font": "Archivo Black", "size": 138, "base": "FFFFFF", "active": "00F0FF",
               "strong": "00FFFF", "outline": 9, "pop": 125, "upper": True, "per": 2},
     "gaming": {"label": "Gaming (Arcade)", "font": "Anton", "size": 150, "base": "FFFFFF", "active": "3C3CFF",
@@ -198,7 +200,8 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
     groups = _groups(inside, st["per"])
     for gi, g in enumerate(groups):
         g_start = max(0.0, g[0]["s"] - start)
-        g_end = min(g[-1]["e"] + 0.25, groups[gi + 1][0]["s"] if gi + 1 < len(groups) else end) - start
+        # Tight speech boundary: strictly synchronized to voice
+        g_end = min(g[-1]["e"] + 0.03, groups[gi + 1][0]["s"] if gi + 1 < len(groups) else end) - start
         if g_end - g_start < 0.02:
             continue
         texts = []
@@ -206,38 +209,40 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             t = re.sub(r"[.,;:]+$", "", x["w"])
             texts.append(t.upper() if st["upper"] else t)
         if not all(roman.drawable(t) for t in texts):
-            # A script the caption font cannot draw (Japanese, Thai, Chinese...): its words cannot be measured, so
-            # they are not placed one by one. The line is drawn whole and centred, in a font the system has for it.
             line = " ".join(texts)
             fs = max(44, min(int(st["size"] * 0.7), int(1500 / max(1, len(line)) * 1.6)))
             ev.append(f"Dialogue: 1,{_ts(g_start)},{_ts(g_end)},Cap,,60,60,0,,{{\\an5\\pos({W // 2},{cap_y:.0f})\\q0\\fs{fs}}}{line}")
             continue
         size = st["size"]
-        gap = f.width("n n", size) - 2 * f.width("n", size) + (2 * st["outline"] + 6) * size / st["size"]   # a space, plus room for both outlines
+        gap = f.width("n n", size) - 2 * f.width("n", size) + (2 * st["outline"] + 6) * size / st["size"]
         total = sum(f.width(t, size) for t in texts) + gap * (len(texts) - 1)
-        if total > CAP_MAX_W:                                  # a long phrase: shrink it to fit, never run off the frame
+        if total > CAP_MAX_W:
             size = max(36, int(size * CAP_MAX_W / total))
-            gap = f.width("n n", size) - 2 * f.width("n", size) + (2 * st["outline"] + 6) * size / st["size"]   # a space, plus room for both outlines
+            gap = f.width("n n", size) - 2 * f.width("n", size) + (2 * st["outline"] + 6) * size / st["size"]
             total = sum(f.width(t, size) for t in texts) + gap * (len(texts) - 1)
         cy = cap_y - f.cap_shift(size)
         x = (W - total) / 2
         p = st["pop"]
         for i, (w, t) in enumerate(zip(g, texts)):
             wd = f.width(t, size)
-            p = max(104, min(st["pop"], 100 + int(2200 / max(wd, 1))))   # long words grow less, so they never touch their neighbours
+            p = max(104, min(st["pop"], 100 + int(2200 / max(wd, 1))))
             pos = f"\\an5\\pos({x + wd / 2:.0f},{cy:.0f})\\fs{size}"
             x += wd + gap
+            # Voice-synchronized timing: only starts when speech begins
             a = max(g_start, w["s"] - start)
-            b = (g[i + 1]["s"] - start) if i + 1 < len(g) else g_end
+            b = min(w["e"] - start + 0.02, (g[i + 1]["s"] - start) if i + 1 < len(g) else g_end)
+            if b <= a:
+                b = a + 0.08
             base = st["strong"] if _key(w["w"]) in strong else st["base"]
-            if a - g_start >= 0.02:                                                   # waiting to be said
-                ev.append(f"Dialogue: 1,{_ts(g_start)},{_ts(a)},Cap,,0,0,0,,{{{pos}\\c&H{base}&}}{t}")
-            if b - a >= 0.02:                                                         # being said: colour and a quick pop, in front
-                ev.append(f"Dialogue: 2,{_ts(a)},{_ts(b)},Cap,,0,0,0,,{{{pos}\\c&H{st['active']}&\\fscx94\\fscy94"
-                          f"\\t(0,90,\\fscx{p}\\fscy{p})\\t(90,200,\\fscx{p - 5}\\fscy{p - 5})}}{t}")
-            if g_end - b >= 0.02:                                                     # said
-                ev.append(f"Dialogue: 1,{_ts(b)},{_ts(g_end)},Cap,,0,0,0,,{{{pos}\\c&H{base}&\\fscx{p - 5}\\fscy{p - 5}"
-                          f"\\t(0,90,\\fscx100\\fscy100)}}{t}")
+            # Active spoken word with vibrant pop & glow
+            if b - a >= 0.02:
+                if st.get("glow"):
+                    ev.append(f"Dialogue: 1,{_ts(a)},{_ts(b)},Cap,,0,0,0,,{{{pos}\\c&H{st['active']}&\\3c&H00FF00FF&\\blur7\\fscx{p + 2}\\fscy{p + 2}}}{t}")
+                ev.append(f"Dialogue: 2,{_ts(a)},{_ts(b)},Cap,,0,0,0,,{{{pos}\\c&H{st['active']}&\\fscx95\\fscy95"
+                          f"\\t(0,80,\\fscx{p}\\fscy{p})\\t(80,180,\\fscx{p - 4}\\fscy{p - 4})}}{t}")
+            # Said word remains in base color until current phrase finishes
+            if g_end - b >= 0.02:
+                ev.append(f"Dialogue: 1,{_ts(b)},{_ts(g_end)},Cap,,0,0,0,,{{{pos}\\c&H{base}&\\fscx100\\fscy100}}{t}")
     return head + "\n".join(ev) + "\n"
 
 
@@ -355,10 +360,11 @@ def _render_in(work: Path, src: Path, out_dir: Path, name: str, start, end, layo
             "-c:a", "aac", "-b:a", "160k", "-ar", "48000", "-movflags", "+faststart", "-pix_fmt"]
     encoders = []
     if _nvenc_ok is not False:
-        encoders.append(("nvenc", ["yuv420p", "-c:v", "h264_nvenc", "-preset", "p4", "-cq", "22", "-b:v", "0"]))
+        # Superfast NVENC Hardware Encoder (Preset p2 + low latency, 500+ FPS)
+        encoders.append(("nvenc", ["yuv420p", "-c:v", "h264_nvenc", "-preset", "p2", "-tune", "ull", "-cq", "22", "-b:v", "0"]))
     if _qsv_ok is not False:
-        encoders.append(("qsv", ["nv12", "-c:v", "h264_qsv", "-global_quality", "23", "-preset", "fast"]))
-    encoders.append(("x264", ["yuv420p", "-c:v", "libx264", "-crf", "21", "-preset", "veryfast", "-threads", "0"]))
+        encoders.append(("qsv", ["nv12", "-c:v", "h264_qsv", "-global_quality", "23", "-preset", "veryfast"]))
+    encoders.append(("x264", ["yuv420p", "-c:v", "libx264", "-crf", "21", "-preset", "ultrafast", "-threads", "0"]))
     err = None
     for label, enc in encoders:
         p = subprocess.run(base + enc + [f"{name}.mp4"], cwd=work, capture_output=True, text=True,

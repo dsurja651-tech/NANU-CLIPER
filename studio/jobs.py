@@ -111,21 +111,22 @@ DEFAULTS = {"max_clips": 6, "min_len": 15, "max_len": 60, "style": "bounce", "la
             "range_start": None, "range_end": None, "captions": True,
             "top_text": True, "top_text_mode": "viral_hook", "custom_top_text": "",
             "hook_strategy": "story", "detect_emotions": True, "detect_funny": True,
-            "detect_crazy": True, "fast_3s_hook": True, "hook_variations": True}
+            "detect_crazy": True, "fast_3s_hook": True, "hook_variations": True,
+            "batch_story": False, "batch_emotion": False, "batch_funny": False, "batch_crazy": False, "batch_fast_3s": False}
 
 
-LIMITS = {"max_clips": (1, 20), "min_len": (5, 120), "max_len": (10, 180), "quality": (360, 2160)}
+LIMITS = {"max_clips": (1, 100), "min_len": (5, 120), "max_len": (10, 180), "quality": (360, 2160)}
 
 
 def clean_options(options) -> dict:
     """Only known settings, each inside its allowed range. Raises ValueError on nonsense."""
     out = {}
     for k, v in (options if isinstance(options, dict) else {}).items():
-        if k in ("captions", "top_text", "detect_emotions", "detect_funny", "detect_crazy", "fast_3s_hook", "hook_variations"):
+        if k in ("captions", "top_text", "detect_emotions", "detect_funny", "detect_crazy", "fast_3s_hook", "hook_variations", "batch_4x4", "batch_4x5", "batch_story", "batch_emotion", "batch_funny", "batch_crazy", "batch_fast_3s"):
             out[k] = bool(v)
             continue
         if k == "hook_strategy":
-            out[k] = str(v) if v in ("story", "emotion", "funny", "crazy", "fast_3s") else "story"
+            out[k] = str(v) if v in ("story", "emotion", "funny", "crazy", "fast_3s", "batch_4x4", "batch_4x5") else "story"
             continue
         if k == "top_text_mode":
             out[k] = str(v) if v in ("viral_hook", "video_title", "custom", "none") else "viral_hook"

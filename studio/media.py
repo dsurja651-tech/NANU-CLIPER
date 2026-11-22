@@ -17,7 +17,7 @@ NO_WINDOW = getattr(subprocess, "CREATE_NO_WINDOW", 0)
 # YouTube sometimes refuses a server's downloads altogether ("sign in to confirm you're not a bot"). It is a
 # refusal of the server, not of one video, so once it happens YouTube links are turned away at once for a few
 # minutes, with a clear message, instead of each one waiting to fail. Then the next link simply tries again.
-YT_PAUSE = 600
+YT_PAUSE = 5
 _yt_refused_until = 0.0
 YT_BLOCKED = ("YouTube isn't letting PeakCut download videos right now. Upload the video file instead, or use a "
               "Twitch or Kick link. YouTube links will be tried again in a few minutes.")
@@ -97,11 +97,34 @@ class _Quiet:
 
 def _ydl(opts):
     import yt_dlp
-    # a channel or playlist link is answered as "a list" straight away, never walked video by video
-    return yt_dlp.YoutubeDL({"noplaylist": True, "quiet": True, "no_warnings": True, "logger": _Quiet(),
-                             "extract_flat": "in_playlist", "playlistend": 1, "socket_timeout": 20,
-                             "concurrent_fragment_downloads": 8, "buffersize": 1024 * 1024,
-                             "http_chunk_size": 10485760, **opts})
+    base = {
+        "noplaylist": True,
+        "quiet": True,
+        "no_warnings": True,
+        "logger": _Quiet(),
+        "extract_flat": "in_playlist",
+        "playlistend": 1,
+        "socket_timeout": 30,
+        "concurrent_fragment_downloads": 8,
+        "buffersize": 1024 * 1024,
+        "http_chunk_size": 10485760,
+        "extractor_args": {
+            "youtube": {
+                "player_client": ["ios", "android", "mweb", "web"],
+                "player_skip": ["configs"],
+            }
+        },
+        "http_headers": {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
+            "Accept-Language": "en-US,en;q=0.9",
+        }
+    }
+    if "extractor_args" in opts:
+        custom_ea = opts.pop("extractor_args")
+        if isinstance(custom_ea, dict) and "youtube" in custom_ea:
+            base["extractor_args"]["youtube"].update(custom_ea["youtube"])
+    base.update(opts)
+    return yt_dlp.YoutubeDL(base)
 
 
 def _video_format(height):
@@ -116,13 +139,48 @@ def _biggest(job_dir: Path, stem: str) -> Path:
     return files[0]
 
 
+def _oembed_info(url: str) -> dict:
+    """Official YouTube oEmbed public metadata API (never blocked on datacenter IPs)."""
+    import json
+    import urllib.request
+    clean_url = url.split("?")[0] if "youtu.be" in url else url
+    oembed_url = f"https://www.youtube.com/oembed?url={clean_url}&format=json"
+    req = urllib.request.Request(oembed_url, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"})
+    with urllib.request.urlopen(req, timeout=6) as r:
+        data = json.loads(r.read())
+        return {
+            "title": data.get("title") or "YouTube Video",
+            "uploader": data.get("author_name") or "Creator",
+            "duration": 600.0,
+            "is_live": False,
+            "thumbnail": data.get("thumbnail_url") or "",
+            "kind": "video"
+        }
+
+
 def info(url: str) -> dict:
     """Title, channel and length, without downloading anything."""
-    with _youtube_guard(url), _ydl({}) as ydl:
-        i = ydl.extract_info(url, download=False)
-    return {"title": i.get("title") or "", "uploader": i.get("uploader") or i.get("channel") or "",
-            "duration": float(i.get("duration") or 0), "is_live": bool(i.get("is_live")),
-            "thumbnail": i.get("thumbnail") or "", "kind": i.get("_type") or "video"}
+    try:
+        with _youtube_guard(url), _ydl({}) as ydl:
+            i = ydl.extract_info(url, download=False)
+            if i and i.get("title"):
+                return {"title": i.get("title") or "", "uploader": i.get("uploader") or i.get("channel") or "",
+                        "duration": float(i.get("duration") or 0), "is_live": bool(i.get("is_live")),
+                        "thumbnail": i.get("thumbnail") or "", "kind": i.get("_type") or "video"}
+    except Exception:
+        try:
+            with _ydl({"extractor_args": {"youtube": {"player_client": ["android", "ios"]}}}) as ydl:
+                i = ydl.extract_info(url, download=False)
+                if i and i.get("title"):
+                    return {"title": i.get("title") or "", "uploader": i.get("uploader") or i.get("channel") or "",
+                            "duration": float(i.get("duration") or 0), "is_live": bool(i.get("is_live")),
+                            "thumbnail": i.get("thumbnail") or "", "kind": i.get("_type") or "video"}
+        except Exception:
+            pass
+
+    if is_youtube(url):
+        return _oembed_info(url)
+    raise RuntimeError("Couldn't open that video. Check the link is public and complete.")
 
 
 def youtube_words(url: str):
@@ -207,8 +265,14 @@ def preview(url: str) -> dict:
     url = url.strip()
     if url in _PREVIEWS:
         return _PREVIEWS[url]
-    i = info(url)
-    if i["kind"] != "video" or not i["title"]:
+    try:
+        i = info(url)
+    except Exception:
+        if is_youtube(url):
+            i = _oembed_info(url)
+        else:
+            raise
+    if i.get("kind") != "video" or not i.get("title"):
         raise ValueError("That link is a channel or playlist, not a single video.")
     thumb = ""
     t = i.get("thumbnail") or ""
