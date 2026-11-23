@@ -2781,10 +2781,16 @@ function drawAdd(variant) {
     </div></div></form>`;
   drawAtt();
 }
-const LAYOUT_SHORT = {split: "Face Top + Gameplay Below (Captions in Middle)"};
+const LAYOUT_SHORT = {
+  split: "Reel Split (Face Top + Game Below)",
+  gameplay: "Gameplay + Corner Facecam",
+  blur: "Full Frame + Blur",
+  crop: "Fill Frame (Crop)",
+  zoom: "Zoomed + Blur"
+};
 const CAP_LOOK = {
   opus: {font:"'Poppins', sans-serif", hl:"#00FF66", up:true, w:800},
-  glow: {font:"'Poppins', sans-serif", hl:"#00FFFF", up:true, w:800, glow:true},
+  glow: {font:"'Poppins', sans-serif", hl:"#00FF66", up:true, w:800, glow:true},
   beast: {font:"'Archivo Black', sans-serif", hl:"#FFEA00", up:true, w:900},
   gaming: {font:"Anton, sans-serif", hl:"#00FFFF", up:true, w:900},
   bounce: {font:"'Archivo Black', sans-serif", hl:"#FFFF00", up:true},

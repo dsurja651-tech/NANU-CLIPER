@@ -12,20 +12,20 @@ W, H = config.OUT_W, config.OUT_H
 
 # ASS colours are &HBBGGRR. `size` is the ASS font size (line height); _Font turns it into real pixels.
 STYLES = {
-    "opus": {"label": "Opus Clip (Neon)", "font": "Poppins ExtraBold", "size": 136, "base": "FFFFFF", "active": "00FF66",
-             "strong": "00FFFF", "outline": 8, "pop": 120, "upper": True, "per": 3},
-    "glow": {"label": "Neon Glow (Viral)", "font": "Poppins ExtraBold", "size": 138, "base": "FFFFFF", "active": "00FFFF",
-             "strong": "FF00FF", "outline": 9, "glow": True, "pop": 124, "upper": True, "per": 2},
+    "opus": {"label": "Opus Clip (Neon)", "font": "Poppins ExtraBold", "size": 138, "base": "FFFFFF", "active": "00FF66",
+             "strong": "00FFFF", "outline": 10, "pop": 122, "upper": True, "per": 2},
+    "glow": {"label": "Neon Glow (Viral)", "font": "Poppins ExtraBold", "size": 138, "base": "FFFFFF", "active": "00FF66",
+             "strong": "00FFFF", "outline": 10, "glow": True, "pop": 124, "upper": True, "per": 2},
     "beast": {"label": "MrBeast (Viral)", "font": "Archivo Black", "size": 138, "base": "FFFFFF", "active": "00F0FF",
-              "strong": "00FFFF", "outline": 9, "pop": 125, "upper": True, "per": 2},
+              "strong": "00FFFF", "outline": 10, "pop": 125, "upper": True, "per": 2},
     "gaming": {"label": "Gaming (Arcade)", "font": "Anton", "size": 150, "base": "FFFFFF", "active": "3C3CFF",
-               "strong": "00FFFF", "outline": 8, "pop": 120, "upper": True, "per": 2},
+               "strong": "00FFFF", "outline": 9, "pop": 120, "upper": True, "per": 2},
     "bounce": {"label": "Bounce", "font": "Poppins ExtraBold", "size": 132, "base": "FFFFFF", "active": "00F0FF",
-               "strong": "FFFFFF", "outline": 7, "pop": 112, "upper": True, "per": 3},
+               "strong": "FFFFFF", "outline": 8, "pop": 112, "upper": True, "per": 3},
     "hype": {"label": "Hype", "font": "Anton", "size": 152, "base": "FFFFFF", "active": "3C3CFF",
-             "strong": "00D7FF", "outline": 7, "pop": 114, "upper": True, "per": 2},
-    "clean": {"label": "Clean", "font": "Poppins ExtraBold", "size": 100, "base": "FFFFFF", "active": "6BD7FF",
-              "strong": "FFFFFF", "outline": 5, "pop": 106, "upper": False, "per": 4},
+             "strong": "00D7FF", "outline": 8, "pop": 114, "upper": True, "per": 2},
+    "clean": {"label": "Clean", "font": "Poppins ExtraBold", "size": 110, "base": "FFFFFF", "active": "6BD7FF",
+              "strong": "FFFFFF", "outline": 6, "pop": 108, "upper": False, "per": 3},
 }
 HOOK = {"font": "Poppins ExtraBold", "size": 96, "ink": "14100E", "box": "FFFFFF", "pad_x": 36, "pad_y": 22, "radius": 26,
         "max_w": 900}
@@ -86,7 +86,13 @@ def install_fonts():
             shutil.copyfile(f, config.FONTS_DIR / f.name)
 
 
-LAYOUTS = {"split": "Face Top + Gameplay Below (Captions in Middle)"}
+LAYOUTS = {
+    "split": "Reel Split (Face Top + Gameplay Below, Middle Captions)",
+    "gameplay": "Gameplay fills the screen, facecam in the corner",
+    "blur": "Full frame + blurred fill",
+    "crop": "Fill the screen (centre crop)",
+    "zoom": "Zoomed in + blurred fill",
+}
 
 
 def _ts(t):
@@ -118,9 +124,24 @@ def _groups(words, per):
 
 def geometry(src_w, src_h, layout="split"):
     """Where the video sits in the 1080x1920 frame, and where hook and captions go.
-    Enforces exclusive Split layout: Facecam on top (0-960), Gameplay on bottom (960-1920),
+    Enforces signature Reel Split layout: Facecam on top (0-960), Gameplay on bottom (960-1920),
     Word-by-word captions positioned at the middle seam (960), hook title at top (130)."""
-    return "split", 960, 130, 960
+    if src_h >= src_w and layout not in ("crop", "split"):
+        layout = "crop"  # already vertical or square
+    if layout == "blur":
+        fg_h = min(H, int(round(W * src_h / src_w / 2)) * 2)
+    elif layout == "zoom":
+        fg_h = 1000
+    elif layout == "split":
+        fg_h = 960
+    else:
+        fg_h = H
+    top = (H - fg_h) // 2
+    if layout == "split":
+        return layout, fg_h, 130, 960
+    if layout in ("crop", "gameplay"):
+        return layout, fg_h, 300, 1380
+    return layout, fg_h, max(230, top - 190), min(1640, top + fg_h + 180)
 
 
 def _hook_events(hook, dur, y):
@@ -174,10 +195,17 @@ Style: Hook,{HOOK['font']},{HOOK['size']},&H00{HOOK['ink']},&H00{HOOK['ink']},&H
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 """
     dur = end - start
-    ev = _hook_events(_clean(hook), dur, hook_y)
+    ev = _hook_events(_clean(roman.to_roman(hook)), dur, hook_y)
     f = _Font.get(st["font"])
-    inside = [dict(w, w=_clean(w["w"])) for w in words if w["s"] >= start - 0.05 and w["s"] < end]
-    inside = sorted((w for w in inside if w["w"]), key=lambda w: w["s"])
+    inside = []
+    for w in words:
+        if w["s"] >= start - 0.05 and w["s"] < end:
+            txt = roman.to_roman(_clean(w["w"]))
+            # Keep clean ASCII alphanumeric and punctuation only:
+            txt = "".join(ch for ch in txt if ord(ch) < 128).strip()
+            if txt:
+                inside.append(dict(w, w=txt))
+    inside = sorted(inside, key=lambda w: w["s"])
     for i, w in enumerate(inside[:-1]):
         # Keep word end strictly bound to speech; do not stretch into silent pauses
         w["e"] = max(w["s"] + 0.06, min(w["e"], inside[i + 1]["s"]))
@@ -192,10 +220,8 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         for x in g:
             t = re.sub(r"[.,;:]+$", "", x["w"])
             texts.append(t.upper() if st["upper"] else t)
-        if not all(roman.drawable(t) for t in texts):
-            line = " ".join(texts)
-            fs = max(44, min(int(st["size"] * 0.7), int(1500 / max(1, len(line)) * 1.6)))
-            ev.append(f"Dialogue: 1,{_ts(g_start)},{_ts(g_end)},Cap,,60,60,0,,{{\\an5\\pos({W // 2},{cap_y:.0f})\\q0\\fs{fs}}}{line}")
+        texts = [t for t in texts if t.strip()]
+        if not texts:
             continue
         size = st["size"]
         gap = f.width("n n", size) - 2 * f.width("n", size) + (2 * st["outline"] + 6) * size / st["size"]
@@ -219,7 +245,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             # Active spoken word with vibrant pop & glow
             if b - a >= 0.02:
                 if st.get("glow"):
-                    ev.append(f"Dialogue: 1,{_ts(a)},{_ts(b)},Cap,,0,0,0,,{{{pos}\\c&H{st['active']}&\\3c&H00FF00FF&\\blur7\\fscx{p + 2}\\fscy{p + 2}}}{t}")
+                    ev.append(f"Dialogue: 1,{_ts(a)},{_ts(b)},Cap,,0,0,0,,{{{pos}\\c&H{st['active']}&\\3c&H0000FF00&\\blur8\\fscx{p + 2}\\fscy{p + 2}}}{t}")
                 ev.append(f"Dialogue: 2,{_ts(a)},{_ts(b)},Cap,,0,0,0,,{{{pos}\\c&H{st['active']}&\\fscx95\\fscy95"
                           f"\\t(0,80,\\fscx{p}\\fscy{p})\\t(80,180,\\fscx{p - 4}\\fscy{p - 4})}}{t}")
             # Said word remains in base color only until the current phrase ends
@@ -233,67 +259,92 @@ PIP_MARGIN = 26
 
 
 def _filter(layout, fg_h, facecam=None, src_w=1920, src_h=1080):
-    # Exclusive layout: Top panel ONLY Facecam (1080x960), Bottom panel ONLY Gameplay (1080x960)
-    # Middle: Word-by-word captions at seam y=960
-    if facecam and len(facecam) == 4:
+    if layout == "split":
+        # Reel Split Layout:
+        # Top 50% Panel: Facecam filling 1080x960 edge-to-edge (no black bars, no gameplay leak)
+        # Bottom 50% Panel: Gameplay filling 1080x960 edge-to-edge (no streamer chair/face leak)
+        # Middle: Word-by-word captions at seam y=960
+        if facecam and len(facecam) == 4:
+            fx, fy, fw, fh = (int(v) for v in facecam)
+            if fw > 8 and fh > 8:
+                cx = fx + fw / 2
+                cy = fy + fh / 2
+
+                # Determine layout composition:
+                if cx < src_w * 0.48:
+                    # Streamer is on LEFT side of screen
+                    cam_boundary = min(src_w, int(max(cx + fw * 1.1, fx + fw * 1.3)))
+                    crop_w = min(src_w, max(int(fw * 2.2), int(fh * 2.2 * 1080 / 960), int(src_w * 0.44)))
+                    crop_w = min(crop_w, int(src_w * 0.50))
+                    crop_h = min(src_h, int(round(crop_w * 960 / 1080)))
+                    top_x = max(0, min(cam_boundary - crop_w, int(cx - crop_w / 2)))
+                    top_y = max(0, min(src_h - crop_h, int(cy - crop_h * 0.38)))
+
+                    # Gameplay is strictly on RIGHT (zero streamer leak!)
+                    gx = max(cam_boundary, int(src_w * 0.44))
+                    gw = src_w - gx
+                    gh = min(src_h, int(round(gw * 960 / 1080)))
+                    gy = max(0, (src_h - gh) // 2)
+                elif cx > src_w * 0.52:
+                    # Streamer is on RIGHT side of screen
+                    cam_boundary = max(0, int(min(cx - fw * 1.1, fx - fw * 0.3)))
+                    crop_w = min(src_w, max(int(fw * 2.2), int(fh * 2.2 * 1080 / 960), int(src_w * 0.44)))
+                    crop_w = min(crop_w, int(src_w * 0.50))
+                    crop_h = min(src_h, int(round(crop_w * 960 / 1080)))
+                    top_x = max(cam_boundary, min(src_w - crop_w, int(cx - crop_w / 2)))
+                    top_y = max(0, min(src_h - crop_h, int(cy - crop_h * 0.38)))
+
+                    # Gameplay is strictly on LEFT (zero streamer leak!)
+                    gx = 0
+                    gw = min(cam_boundary, int(src_w * 0.56))
+                    gh = min(src_h, int(round(gw * 960 / 1080)))
+                    gy = max(0, (src_h - gh) // 2)
+                else:
+                    # Streamer in center
+                    crop_h = min(src_h, max(int(fh * 2.2), int(fw * 2.2 * 960 / 1080)))
+                    crop_w = min(src_w, int(round(crop_h * 1080 / 960)))
+                    top_x = max(0, min(src_w - crop_w, int(cx - crop_w / 2)))
+                    top_y = max(0, min(src_h - crop_h, int(cy - crop_h * 0.38)))
+
+                    gw = min(src_w, int(round(src_h * 1080 / 960)))
+                    gh = src_h
+                    gx = max(0, (src_w - gw) // 2)
+                    gy = 0
+
+                fc_filter = f"[fc]crop={crop_w}:{crop_h}:{top_x}:{top_y},scale={W}:960:force_original_aspect_ratio=increase,crop={W}:960,setsar=1[top];"
+                game_filter = f"[base]crop={gw}:{gh}:{gx}:{gy},scale={W}:960:force_original_aspect_ratio=increase,crop={W}:960,setsar=1[bot];"
+                return f"[0:v]fps={config.OUT_FPS},split=2[base][fc];{fc_filter}{game_filter}[top][bot]vstack=inputs=2[v0];"
+
+        return (f"[0:v]fps={config.OUT_FPS},split=2[t_raw][b_raw];"
+                f"[t_raw]scale={W}:960:force_original_aspect_ratio=increase,crop={W}:960:(in_w-out_w)/2:0,setsar=1[top];"
+                f"[b_raw]scale={W}:960:force_original_aspect_ratio=increase,crop={W}:960:(in_w-out_w)/2:in_h-960,setsar=1[bot];"
+                f"[top][bot]vstack=inputs=2[v0];")
+
+    if layout == "gameplay" and facecam:
         fx, fy, fw, fh = (int(v) for v in facecam)
         if fw > 8 and fh > 8:
-            cx = fx + fw / 2
-            cy = fy + fh / 2
+            pip_h = max(2, int(round(PIP_W * fh / fw)))
+            return (f"[0:v]fps={config.OUT_FPS},split=2[base][fc];"
+                    f"[base]scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},setsar=1[b];"
+                    f"[fc]crop={fw}:{fh}:{fx}:{fy},scale={PIP_W}:{pip_h},setsar=1[p];"
+                    f"[b][p]overlay={W - PIP_W - PIP_MARGIN}:{PIP_MARGIN}[v0];")
 
-            # Determine layout composition:
-            if cx < src_w * 0.48:
-                # Streamer is on LEFT side of screen
-                cam_boundary = min(src_w, int(max(cx + fw * 1.1, fx + fw * 1.3)))
-                crop_w = min(src_w, max(int(fw * 2.2), int(fh * 2.2 * 1080 / 960), int(src_w * 0.44)))
-                crop_w = min(crop_w, int(src_w * 0.50))
-                crop_h = min(src_h, int(round(crop_w * 960 / 1080)))
-                top_x = max(0, min(cam_boundary - crop_w, int(cx - crop_w / 2)))
-                top_y = max(0, min(src_h - crop_h, int(cy - crop_h * 0.38)))
+    if layout == "crop" or (layout == "gameplay" and not facecam):
+        return f"[0:v]fps={config.OUT_FPS},scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},setsar=1[v0];"
 
-                # Gameplay is strictly on RIGHT (zero streamer leak!)
-                gx = max(cam_boundary, int(src_w * 0.44))
-                gw = src_w - gx
-                gh = min(src_h, int(round(gw * 960 / 1080)))
-                gy = max(0, (src_h - gh) // 2)
-            elif cx > src_w * 0.52:
-                # Streamer is on RIGHT side of screen
-                cam_boundary = max(0, int(min(cx - fw * 1.1, fx - fw * 0.3)))
-                crop_w = min(src_w, max(int(fw * 2.2), int(fh * 2.2 * 1080 / 960), int(src_w * 0.44)))
-                crop_w = min(crop_w, int(src_w * 0.50))
-                crop_h = min(src_h, int(round(crop_w * 960 / 1080)))
-                top_x = max(cam_boundary, min(src_w - crop_w, int(cx - crop_w / 2)))
-                top_y = max(0, min(src_h - crop_h, int(cy - crop_h * 0.38)))
-
-                # Gameplay is strictly on LEFT (zero streamer leak!)
-                gx = 0
-                gw = min(cam_boundary, int(src_w * 0.56))
-                gh = min(src_h, int(round(gw * 960 / 1080)))
-                gy = max(0, (src_h - gh) // 2)
-            else:
-                # Streamer in center
-                crop_h = min(src_h, max(int(fh * 2.2), int(fw * 2.2 * 960 / 1080)))
-                crop_w = min(src_w, int(round(crop_h * 1080 / 960)))
-                top_x = max(0, min(src_w - crop_w, int(cx - crop_w / 2)))
-                top_y = max(0, min(src_h - crop_h, int(cy - crop_h * 0.38)))
-
-                gw = min(src_w, int(round(src_h * 1080 / 960)))
-                gh = src_h
-                gx = max(0, (src_w - gw) // 2)
-                gy = 0
-
-            fc_filter = f"[fc]crop={crop_w}:{crop_h}:{top_x}:{top_y},scale={W}:960:force_original_aspect_ratio=increase,crop={W}:960,setsar=1[top];"
-            game_filter = f"[base]crop={gw}:{gh}:{gx}:{gy},scale={W}:960:force_original_aspect_ratio=increase,crop={W}:960,setsar=1[bot];"
-            return f"[0:v]fps={config.OUT_FPS},split=2[base][fc];{fc_filter}{game_filter}[top][bot]vstack=inputs=2[v0];"
-
-    return (f"[0:v]fps={config.OUT_FPS},split=2[t_raw][b_raw];"
-            f"[t_raw]scale={W}:960:force_original_aspect_ratio=increase,crop={W}:960:(in_w-out_w)/2:0,setsar=1[top];"
-            f"[b_raw]scale={W}:960:force_original_aspect_ratio=increase,crop={W}:960:(in_w-out_w)/2:in_h-960,setsar=1[bot];"
-            f"[top][bot]vstack=inputs=2[v0];")
+    return (f"[0:v]fps={config.OUT_FPS},split=2[a][b];"
+            f"[a]scale=270:480:force_original_aspect_ratio=increase,crop=270:480,boxblur=6:2,"
+            f"scale={W}:{H},eq=brightness=-0.14:saturation=1.15[bg];"
+            f"[b]scale={W}:{fg_h}:force_original_aspect_ratio=increase,crop={W}:{fg_h}[fg];"
+            f"[bg][fg]overlay=0:(H-h)/2,setsar=1[v0];")
 
 
 def _hook_y(layout, hook_y, facecam=None):
-    return 130
+    if layout == "split":
+        return 130
+    if layout == "gameplay" and facecam:
+        return 130
+    return hook_y
 
 
 _nvenc_ok = None
