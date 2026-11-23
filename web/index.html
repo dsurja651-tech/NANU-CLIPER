@@ -273,12 +273,21 @@ label.ck input{accent-color:var(--brand);margin:0}
 .empty b{display:block;color:var(--brand-ink);font-size:15px;font-weight:600}
 
 /* ---------- home hero + composer with crazy motion visuals ---------- */
-.hero{position:relative;padding:36px 28px 48px;text-align:center;overflow:hidden;border-radius:24px;margin-bottom:12px;background:radial-gradient(ellipse at 50% 15%, rgba(255,139,51,0.08) 0%, rgba(13,9,20,0.5) 60%, transparent 100%)}
+.hero{position:relative;padding:32px 28px 44px;text-align:center;overflow:hidden;border-radius:24px;margin-bottom:12px;background:radial-gradient(ellipse at 50% 15%, rgba(99,102,241,0.12) 0%, rgba(13,9,20,0.7) 60%, transparent 100%)}
 .hero-motion-container{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:0;border-radius:24px}
+.hero-video-stage{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden;z-index:0;pointer-events:none;opacity:0.38;filter:contrast(1.18) saturate(1.25);transition:opacity 0.5s ease}
+.hero-yt-frame{width:140%;height:140%;border:0;pointer-events:none;transform:scale(1.15)}
+.hero-video-vignette{position:absolute;inset:0;background:radial-gradient(ellipse at center, rgba(11,14,20,0.12) 0%, rgba(11,14,20,0.80) 70%, rgba(11,14,20,0.98) 100%);pointer-events:none}
 .hero-motion-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:1}
 .hero-cyber-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,139,51,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(0,240,255,0.05) 1px, transparent 1px);background-size:38px 38px;z-index:0;opacity:0.8;mask-image:radial-gradient(circle at 50% 25%, black 20%, transparent 75%);-webkit-mask-image:radial-gradient(circle at 50% 25%, black 20%, transparent 75%)}
-.hero-nebula-core{position:absolute;top:22%;left:50%;transform:translate(-50%, -20%);width:460px;height:200px;background:radial-gradient(ellipse at center, rgba(255,139,51,0.36) 0%, rgba(255,42,133,0.22) 42%, rgba(0,240,255,0.14) 75%, transparent 100%);filter:blur(36px);border-radius:50%;animation:nebulaBreath 6s ease-in-out infinite alternate;z-index:0;pointer-events:none}
+.hero-nebula-core{position:absolute;top:22%;left:50%;transform:translate(-50%, -20%);width:460px;height:200px;background:radial-gradient(ellipse at center, rgba(99,102,241,0.36) 0%, rgba(244,63,94,0.22) 42%, rgba(6,182,212,0.14) 75%, transparent 100%);filter:blur(36px);border-radius:50%;animation:nebulaBreath 6s ease-in-out infinite alternate;z-index:0;pointer-events:none}
 @keyframes nebulaBreath{0%{transform:translate(-50%,-20%) scale(0.88);opacity:0.65}50%{transform:translate(-50%,-24%) scale(1.18) rotate(2deg);opacity:0.95}100%{transform:translate(-50%,-18%) scale(1.02) rotate(-2deg);opacity:0.8}}
+
+.hero-creator-bar{display:inline-flex;align-items:center;justify-content:center;gap:12px;background:rgba(15,18,28,0.88);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,0.14);border-radius:999px;padding:5px 14px 5px 18px;box-shadow:0 4px 20px rgba(0,0,0,0.55);margin:0 auto 14px;position:relative;z-index:2}
+.hero-creator-tag{font-size:12px;color:var(--text);font-weight:600;display:flex;align-items:center;gap:8px}
+.hero-creator-tag span{background:var(--brand);color:#fff;font-size:10px;font-weight:800;padding:2px 7px;border-radius:4px}
+.hero-next-creator-btn{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:20px;color:#fff;font-size:11px;font-weight:700;padding:4px 11px;cursor:pointer;transition:all 0.2s ease}
+.hero-next-creator-btn:hover{background:var(--brand);border-color:var(--brand-line);transform:scale(1.05)}
 
 .hero-badge-wrap{display:flex;justify-content:center;margin-bottom:12px;position:relative;z-index:2}
 .hero-badge{display:inline-flex;align-items:center;gap:8px;padding:5px 16px;border-radius:100px;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;background:rgba(18,14,28,0.78);backdrop-filter:blur(10px);border:1px solid rgba(255,139,51,0.5);box-shadow:0 0 18px rgba(255,139,51,0.35), inset 0 0 10px rgba(255,139,51,0.15);color:#FFF;animation:badgeFlow 4s ease infinite;cursor:default}
@@ -2263,9 +2272,17 @@ function renderHero() {
   if (!heroSlot) return;
   heroSlot.innerHTML = `<section class="hero">
     <div class="hero-motion-container" aria-hidden="true">
+      <div class="hero-video-stage" id="heroVideoStage">
+        <iframe id="heroYtPlayer" class="hero-yt-frame" src="" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+        <div class="hero-video-vignette"></div>
+      </div>
       <canvas id="heroMotionCanvas" class="hero-motion-canvas"></canvas>
       <div class="hero-cyber-grid"></div>
       <div class="hero-nebula-core"></div>
+    </div>
+    <div class="hero-creator-bar">
+      <span id="heroCreatorTag" class="hero-creator-tag"><span>🎮 GAMING</span> <b>Techno Gamerz & CarryisLive • GTA V 5-Star Police Escape</b> <small style="opacity:0.8;">(Live AI Auto-Clipping to 9:16 Short)</small></span>
+      <button type="button" class="hero-next-creator-btn" onclick="window.nextCreatorVideo && window.nextCreatorVideo();" title="Switch to another creator video">🔀 Next Creator</button>
     </div>
     <div class="hero-badge-wrap">
       <div class="hero-badge">
@@ -2334,7 +2351,8 @@ function initHeroMotion() {
   const scenes = [
     {
       type: "GAMING",
-      title: "GTA V 5-Star Police Chase / 1v5 Ace",
+      id: "kJQP7kiw5Fk",
+      title: "Techno Gamerz & CarryisLive • GTA V 5-Star Police Escape",
       tag: "🎮 GAMING CLUTCH",
       color: "#00F0FF",
       accent: "#FF1493",
@@ -2344,9 +2362,22 @@ function initHeroMotion() {
       score: "99/100 VIRAL"
     },
     {
+      type: "CHALLENGE",
+      id: "0e3GPea1Tyg",
+      title: "MrBeast • $1,000,000 Laser Escape Room",
+      tag: "💣 CRAZY CHALLENGE",
+      color: "#EF4444",
+      accent: "#CCFF00",
+      hook: "LAST TO LEAVE WINS $1,000,000! 🚨",
+      words: ["LAST", "TO", "LEAVE", "WINS", "$1,000,000! 💰"],
+      views: "+5.1M Views",
+      score: "100/100 EPIC"
+    },
+    {
       type: "IRL",
-      title: "Midnight Tokyo Shibuya IRL Stream",
-      tag: "🔴 IRL STREAM",
+      id: "1La4QzGeaaQ",
+      title: "Tokyo Midnight • Shibuya Crossing 4K IRL Stream",
+      tag: "🔴 IRL NIGHT STREAM",
       color: "#FF8B33",
       accent: "#00F0FF",
       hook: "THE CRAZIEST THING JUST HAPPENED! ⚡",
@@ -2355,17 +2386,52 @@ function initHeroMotion() {
       score: "98/100 VIRAL"
     },
     {
-      type: "CHALLENGE",
-      title: "$1,000,000 Laser Escape Room",
-      tag: "💣 CRAZY CHALLENGE",
-      color: "#EF4444",
-      accent: "#CCFF00",
-      hook: "LAST TO LEAVE WINS $1,000,000! 🚨",
-      words: ["LAST", "TO", "LEAVE", "WINS", "$1,000,000! 💰"],
-      views: "+5.1M Views",
-      score: "100/100 EPIC"
+      type: "GAMING",
+      id: "eBGIQ7ZuuiU",
+      title: "Total Gaming • Insane 1v5 Clutch Ace",
+      tag: "⚡ 1v5 CLUTCH",
+      color: "#10B981",
+      accent: "#38BDF8",
+      hook: "UNBELIEVABLE 1v5 CLUTCH IN HISTORY! 🎯",
+      words: ["UNBELIEVABLE", "0.1s", "DEFUSE", "1v5", "ACE! 💣"],
+      views: "+3.9M Views",
+      score: "99/100 VIRAL"
     }
   ];
+
+  let lastSceneIndex = -1;
+  const cycleTime = 8.0;
+
+  window.nextCreatorVideo = function() {
+    time += cycleTime;
+    lastSceneIndex = -1;
+    const sIdx = Math.floor(time / cycleTime) % scenes.length;
+    toast(`🎬 Switched to YouTuber video: ${scenes[sIdx].title}`, "ok");
+  };
+
+  // Auto-detect custom YouTube URL entered by user in Clipper composer
+  setTimeout(() => {
+    const rawInput = document.querySelector("#raw, #url, input[name=url]");
+    if (rawInput) {
+      rawInput.addEventListener("input", () => {
+        const val = rawInput.value.trim();
+        const m = val.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+        if (m && m[1]) {
+          const ytId = m[1];
+          window._userHasCustomVideo = true;
+          const iframe = document.getElementById("heroYtPlayer");
+          const tag = document.getElementById("heroCreatorTag");
+          if (iframe) {
+            iframe.src = `https://www.youtube-nocookie.com/embed/${ytId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${ytId}&playsinline=1&rel=0&showinfo=0&modestbranding=1`;
+          }
+          if (tag) {
+            tag.innerHTML = `<span>⚡ YOUR VIDEO</span> <b>Custom YouTube Stream Loaded</b> <small style="opacity:0.8;">(Live AI Auto-Clipping to 9:16 Shorts)</small>`;
+          }
+          toast("🎬 Real YouTube video loaded into background cutter!", "ok");
+        }
+      });
+    }
+  }, 250);
 
   const sparks = [];
   function addSparks(sx, sy, count, color) {
@@ -2394,11 +2460,25 @@ function initHeroMotion() {
     time += 0.016;
     ctx.clearRect(0, 0, width, height);
 
-    // Timeline cycle: each scene lasts 7 seconds
-    const cycleTime = 7.0;
+    // Timeline cycle
     const sceneIndex = Math.floor(time / cycleTime) % scenes.length;
     const curScene = scenes[sceneIndex];
-    const tScene = (time % cycleTime); // 0 to 7.0
+    const tScene = (time % cycleTime);
+
+    // Sync YouTube Iframe background video on scene change
+    if (sceneIndex !== lastSceneIndex) {
+      lastSceneIndex = sceneIndex;
+      if (!window._userHasCustomVideo) {
+        const iframe = document.getElementById("heroYtPlayer");
+        const tag = document.getElementById("heroCreatorTag");
+        if (iframe) {
+          iframe.src = `https://www.youtube-nocookie.com/embed/${curScene.id}?autoplay=1&mute=1&controls=0&loop=1&playlist=${curScene.id}&playsinline=1&rel=0&showinfo=0&modestbranding=1`;
+        }
+        if (tag) {
+          tag.innerHTML = `<span>${curScene.tag}</span> <b>${curScene.title}</b> <small style="opacity:0.8;">(Live AI Auto-Clipping to 9:16 Short)</small>`;
+        }
+      }
+    }
 
     // Canvas center & mouse parallax
     const cx = width / 2 + (mouse.active ? (mouse.x - width / 2) * 0.04 : 0);
