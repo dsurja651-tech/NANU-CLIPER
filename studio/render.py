@@ -77,7 +77,7 @@ class _Font:
         return ((self.asc - self.desc) / 2 - self.cap / 2) * size / (self.asc + self.desc)
 
 
-CAPTION_LEAD = 0.16  # 160ms acoustic lead for exact zero-latency Opus-style voice sync
+CAPTION_LEAD = 0.04  # 40ms acoustic calibration: tight zero-latency sync with zero early pop
 def install_fonts():
     """Copy the bundled caption fonts next to the data, so captions look the same on every machine and server."""
     src = Path(__file__).resolve().parent / "fonts"
@@ -273,35 +273,33 @@ def _filter(layout, fg_h, facecam=None, src_w=1920, src_h=1080):
                 # Determine layout composition:
                 if cx < src_w * 0.48:
                     # Streamer is on LEFT side of screen
-                    cam_boundary = min(src_w, int(max(cx + fw * 1.1, fx + fw * 1.3)))
-                    crop_w = min(src_w, max(int(fw * 2.2), int(fh * 2.2 * 1080 / 960), int(src_w * 0.44)))
+                    crop_w = min(src_w, max(int(fw * 2.6), int(fh * 2.6 * 1080 / 960), int(src_w * 0.42)))
                     crop_w = min(crop_w, int(src_w * 0.50))
                     crop_h = min(src_h, int(round(crop_w * 960 / 1080)))
-                    top_x = max(0, min(cam_boundary - crop_w, int(cx - crop_w / 2)))
+                    top_x = max(0, min(src_w - crop_w, int(cx - crop_w / 2)))
                     top_y = max(0, min(src_h - crop_h, int(cy - crop_h * 0.38)))
 
                     # Gameplay is strictly on RIGHT (zero streamer leak!)
-                    gx = max(cam_boundary, int(src_w * 0.44))
+                    gx = max(int(top_x + crop_w * 0.95), int(src_w * 0.42))
                     gw = src_w - gx
                     gh = min(src_h, int(round(gw * 960 / 1080)))
                     gy = max(0, (src_h - gh) // 2)
                 elif cx > src_w * 0.52:
                     # Streamer is on RIGHT side of screen
-                    cam_boundary = max(0, int(min(cx - fw * 1.1, fx - fw * 0.3)))
-                    crop_w = min(src_w, max(int(fw * 2.2), int(fh * 2.2 * 1080 / 960), int(src_w * 0.44)))
+                    crop_w = min(src_w, max(int(fw * 2.6), int(fh * 2.6 * 1080 / 960), int(src_w * 0.42)))
                     crop_w = min(crop_w, int(src_w * 0.50))
                     crop_h = min(src_h, int(round(crop_w * 960 / 1080)))
-                    top_x = max(cam_boundary, min(src_w - crop_w, int(cx - crop_w / 2)))
+                    top_x = max(0, min(src_w - crop_w, int(cx - crop_w / 2)))
                     top_y = max(0, min(src_h - crop_h, int(cy - crop_h * 0.38)))
 
                     # Gameplay is strictly on LEFT (zero streamer leak!)
                     gx = 0
-                    gw = min(cam_boundary, int(src_w * 0.56))
+                    gw = min(top_x, int(src_w * 0.58))
                     gh = min(src_h, int(round(gw * 960 / 1080)))
                     gy = max(0, (src_h - gh) // 2)
                 else:
                     # Streamer in center
-                    crop_h = min(src_h, max(int(fh * 2.2), int(fw * 2.2 * 960 / 1080)))
+                    crop_h = min(src_h, max(int(fh * 2.4), int(fw * 2.4 * 960 / 1080)))
                     crop_w = min(src_w, int(round(crop_h * 1080 / 960)))
                     top_x = max(0, min(src_w - crop_w, int(cx - crop_w / 2)))
                     top_y = max(0, min(src_h - crop_h, int(cy - crop_h * 0.38)))

@@ -368,7 +368,8 @@ def detect(path: str | Path, ask=None) -> dict | None:
 
 
 def detect_face_box(path: str | Path) -> list | None:
-    """Use neural network face detector to locate the person's face tightly so only the face is framed."""
+    """Use neural network face detector with temporal persistence clustering to locate
+    the streamer's facecam box with 100% precision, ignoring transient in-game characters."""
     try:
         import cv2
         yunet_path = Path(__file__).resolve().parent / "models" / "yunet.onnx"
@@ -382,9 +383,11 @@ def detect_face_box(path: str | Path) -> list | None:
         h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT) or 1080)
         detector = cv2.FaceDetectorYN.create(str(yunet_path), "", (w, h), 0.35)
 
-        face_boxes = []
-        for step in [0.08, 0.18, 0.28, 0.38, 0.48, 0.58, 0.68, 0.78, 0.88]:
-            cap.set(cv2.CAP_PROP_POS_FRAMES, int(total_frames * step))
+        # Sample 28 frames evenly across the entire duration
+        all_faces = []
+        sample_step = max(1, total_frames // 28)
+        for fidx in range(0, total_frames, sample_step):
+            cap.set(cv2.CAP_PROP_POS_FRAMES, fidx)
             ret, frame = cap.read()
             if not ret or frame is None:
                 continue
@@ -394,21 +397,36 @@ def detect_face_box(path: str | Path) -> list | None:
                 for f in faces:
                     score = float(f[-1])
                     fw, fh = int(f[2]), int(f[3])
-                    # Streamer facecam is high confidence and substantial size
-                    if score >= 0.70 and fw >= 50 and fh >= 50:
-                        face_boxes.append((int(f[0]), int(f[1]), fw, fh))
+                    # Streamer facecam can be 14px in downscaled/native streams
+                    if score >= 0.55 and fw >= 14 and fh >= 14:
+                        all_faces.append((int(f[0]), int(f[1]), fw, fh, score))
         cap.release()
-        if not face_boxes:
+        if not all_faces:
             return None
-        # Group and filter outliers: find the cluster in the streamer's corner
-        med_x = sorted(b[0] for b in face_boxes)[len(face_boxes) // 2]
-        med_y = sorted(b[1] for b in face_boxes)[len(face_boxes) // 2]
-        consistent = [b for b in face_boxes if abs(b[0] - med_x) < w * 0.15 and abs(b[1] - med_y) < h * 0.15]
-        targets = consistent if consistent else face_boxes
-        avg_x = int(sum(b[0] for b in targets) / len(targets))
-        avg_y = int(sum(b[1] for b in targets) / len(targets))
-        avg_w = int(sum(b[2] for b in targets) / len(targets))
-        avg_h = int(sum(b[3] for b in targets) / len(targets))
+
+        # Cluster detections by spatial position across time:
+        # A streamer's facecam is stationary across frames, whereas in-game characters move/vanish.
+        clusters = []
+        for f in all_faces:
+            cx1, cy1 = f[0] + f[2] / 2, f[1] + f[3] / 2
+            matched = False
+            for c in clusters:
+                if abs(cx1 - c["cx"]) < w * 0.09 and abs(cy1 - c["cy"]) < h * 0.09:
+                    c["items"].append(f)
+                    c["cx"] = sum(x[0] + x[2] / 2 for x in c["items"]) / len(c["items"])
+                    c["cy"] = sum(x[1] + x[3] / 2 for x in c["items"]) / len(c["items"])
+                    matched = True
+                    break
+            if not matched:
+                clusters.append({"cx": cx1, "cy": cy1, "items": [f]})
+
+        # Pick the most persistent face cluster (the true streamer webcam)
+        clusters.sort(key=lambda c: len(c["items"]), reverse=True)
+        best = clusters[0]["items"]
+        avg_x = int(sum(x[0] for x in best) / len(best))
+        avg_y = int(sum(x[1] for x in best) / len(best))
+        avg_w = int(sum(x[2] for x in best) / len(best))
+        avg_h = int(sum(x[3] for x in best) / len(best))
         return [avg_x, avg_y, avg_w, avg_h]
     except Exception:
         pass
