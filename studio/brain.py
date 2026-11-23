@@ -34,16 +34,23 @@ SCHEMA = {
     },
 }
 
-HEAD = """You are a clip scout for short-form gaming and streaming videos (YouTube Shorts, Reels, TikTok).
+HEAD = """You are an elite, viral clip scout for short-form video (YouTube Shorts, Instagram Reels, TikTok), engineered to uncover story-driven, emotional, and captivating moments that viewers actually care about.
+
 Below is a timestamped transcript of part of a video. Each line starts with [seconds]. Lines marked (LOUD)
-are where the audio got much louder than usual: shouting, laughing, sudden action. Lines marked (CHAT)
-are where the live chat suddenly got much busier, which usually means viewers reacted to something.
+are where the audio got louder, and lines marked (CHAT) are where live viewers reacted.
+
+CRITICAL MANDATE - STORY & EMOTION FIRST:
+Do NOT select clips based solely on shouting, screaming, or raw loudness spikes! Pure loudness without substance fails to retain viewers. Instead, prioritize:
+1. Story & Narrative Arcs: Mini-stories with setup, rising curiosity/tension, and a satisfying payoff or punchline.
+2. Authentic Emotional Resonance: Moments of shock, hearty laughter, disbelief, heartwarming vulnerability, hype, or relatable drama.
+3. Audience Retention Hooks: The exact moments that make a viewer stop scrolling and watch until the very end.
+A well-told story, witty banter, or genuine reaction beats mindless shouting every time.
 
 Video title: {title}
 Channel: {uploader}
 
-Pick up to {n} moments that would work as standalone clips for someone who has never seen the stream:
-funny moments, fails, clutch plays, rage, shock, hot takes, or a short story with a payoff.
+Pick up to {n} moments that would work as irresistible standalone viral clips for someone who has never seen the stream:
+compelling stories, hilarious banter/fails, high-stakes clutch plays, genuine emotional reactions, or mind-blowing moments.
 """
 
 LIVE_NOTE = """
@@ -61,9 +68,10 @@ Rules:
 - Skip weak moments. Fewer strong clips beat many weak ones. Return [] if nothing is worth clipping.
 - score: 90-100 Virality Score (calibrated to Opus Clip 90+ viral standards). Calculate based on:
   1) Hook Strength (first 3-second retention lock: 90-100)
-  2) Flow & Excitement (loud reactions, tension, pacing: 90-100)
-  3) Engagement & Shareability (high emotion, humor, shock, insane play: 90-100)
-  Only select high-voltage moments so final calculated virality score is 90 or above (90-99).
+  2) Story Arc & Narrative Flow (setup, rising tension, punchline/payoff: 90-100)
+  3) Emotional Resonance & Shareability (authentic emotion, humor, shock, insane play: 90-100)
+  Never penalize a clip for being quiet or conversational if the storytelling, intrigue, or emotion is captivating.
+  Only select high-retention moments so final calculated virality score is 90 or above (90-99).
 - hook: at most 5 words, ALL CAPS, shown as big text on the video. Curiosity, but true to what happens.
 - title: at most 70 characters, for the post.
 - description: one or two sentences.
@@ -380,7 +388,9 @@ def find_clips(words, db, duration, title="", uploader="", max_clips=6, min_len=
     per_window = max(3, min(25, int(np.ceil(max_clips * 1.8 / max(1, len(windows)))) + 1))
     extra = _game_rules(game)
 
-    strat_rules = []
+    strat_rules = [
+        "- AUDIENCE RETENTION & STORY FOCUS: Prioritize complete storytelling arcs (setup, tension, twist, resolution) and high emotional resonance. NEVER pick clips merely because of audio loudness or shouting alone.",
+    ]
     if hook_strategy in ("batch_4x5", "batch_4x4"):
         strat_rules.append("- VIRAL BATCH 4x5 MULTI-STRATEGY: Pick 4 Story-Driven narrative clips, 4 High-Emotion shock/gasp clips, 4 Comedic/Funny fail clips, 4 Crazy/WTF unhinged hook clips, and 4 Three-Second Fast-Lock hook clips.")
     elif hook_strategy == "story":
@@ -517,9 +527,10 @@ def describe(text, title="", uploader="", game=None, timeout=None):
 
 
 # ---------------------------------------------------------------- live: two judges that never see each other's input
-TRANSCRIPT_JUDGE = """You are a clip scout for short-form gaming and streaming videos (YouTube Shorts, Reels, TikTok).
+TRANSCRIPT_JUDGE = """You are an elite viral clip scout for short-form gaming and streaming videos (YouTube Shorts, Reels, TikTok).
 You only get the WORDS spoken on a live stream: a timestamped transcript, each line starting with [seconds].
-You cannot hear how loud anything was or see the chat; judge purely on what was said.
+You judge purely on the STORY, CONFLICT, EMOTION, and AUDIENCE RETENTION of what was said.
+CRITICAL: Do NOT favor mindless shouting. A gripping story, hilarious conversational failure, or shocking emotional confession retains viewers far better than raw loudness.
 
 Stream title: {title}
 Channel: {uploader}
@@ -527,8 +538,8 @@ Channel: {uploader}
 The transcript covers seconds {start:.0f} to {now:.0f}. If a moment is still unfolding at the very end, leave it out;
 you will see it again in the next check.
 {must}
-Pick up to {n} moments that would work as standalone clips for someone who has never seen the stream:
-funny moments, fails, clutch plays, rage, shock, hot takes, or a short story with a payoff.
+Pick up to {n} moments that tell a complete mini-story, deliver powerful emotion, or create an irresistible curiosity hook:
+story arcs with payoffs, hilarious fails/jokes, shocking revelations, genuine emotional reactions, or high-stakes clutch plays.
 """
 MUST_PICK = "This time you MUST return the single best moment in this stretch, even if it is only decent."
 NOT_MUST = "Most checks should return []. Only return a moment you would stop scrolling for."

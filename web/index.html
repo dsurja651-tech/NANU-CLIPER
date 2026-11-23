@@ -1411,13 +1411,13 @@ function startTour() {
   const steps = [
     {t: "Welcome to NanuCut Clipper", x: "Long videos and live streams go in, captioned vertical clips come out. Here is a quick look around.",
      chips: [["link", "Paste a link"], ["scissors", "Get clips", 1], ["radio", "Live streams"], ["send", "Post them"]]},
-    {t: "Start with any video", x: "Paste a YouTube, Twitch or Kick link here, or upload a file. PeakCut finds the best moments and makes each one a short with captions.",
+    {t: "Start with any video", x: "Paste a YouTube, Twitch or Kick link here, or upload a file. NanuCut Clipper finds the best moments and makes each one a short with captions.",
      sel: "#addform", dock: "bottom", chips: [["link", "YouTube"], ["link", "Twitch"], ["link", "Kick"], ["up", "Upload", 1]]},
     {t: "Your day at a glance", x: "Home shows what is recording, how many clips were made and posted today, and what is waiting to go out.",
      sel: "#ov .tiles", dock: "bottom", chips: [["radio", "Recording"], ["scissors", "Clips today", 1], ["send", "Posted"], ["clock", "Waiting"]]},
     {t: "Every video in one place", x: "All videos lists everything you have processed. Open a video to see its clips, trim them, change the captions or download them.",
      sel: '#nav [data-v="library"]', side: 1, dock: "bottom", chips: [["film", "All videos", 1], ["play", "Preview"], ["sliders", "Edit"], ["down", "Download"]]},
-    {t: "Add the creators you clip", x: "Give each creator a workspace with their channels. PeakCut can record them when they go live and clip the highlights as they happen.",
+    {t: "Add the creators you clip", x: "Give each creator a workspace with their channels. NanuCut Clipper can record them when they go live and clip the highlights as they happen.",
      sel: '#nav [data-act="newcreator"]', side: 1, dock: "bottom", chips: [["plusc", "New creator", 1], ["radio", "Record live"], ["bolt", "Clip highlights"]]},
     {t: "The AI picks the moments", x: "This shows which AI this server uses and how much it has worked today. Open it to see what the AI was used for.",
      sel: "#foot .ai-card", side: 1, dock: "top", chips: [["bolt", "AI", 1], ["chart", "See usage"]]},
@@ -2554,9 +2554,9 @@ function drawShell() {  const nav = (v, icon, label, extra = "") => `<button cla
   try { upSeen = localStorage.getItem("peakcut_update_seen") || ""; } catch {}
   const upBar = up && up.latest !== upSeen ? `<div class="vb" role="status">${ic("up")}<span>${up.restart ? "<b>The new version is downloaded.</b> Close NanuCut Clipper and start it again to use it." : `A new version of NanuCut Clipper is out${up.behind ? `: <b>${up.behind} update${up.behind === 1 ? "" : "s"}</b> since yours` : ""}.`}</span>
     <button class="btn sm primary" data-act="updhow">${up.restart ? "What's new" : "How to update"}</button><button class="btn sm ghost" data-act="updlater" aria-label="Hide until the next version">Later</button></div>` : "";
-  const toolBar = S.status.no_ffmpeg ? `<div class="vb" role="alert">${ic("warn")}<span><b>PeakCut can't make clips yet: ffmpeg isn't installed on this computer.</b> Open a terminal, run <code>winget install Gyan.FFmpeg</code> (Mac: <code>brew install ffmpeg</code>, Linux: <code>sudo apt install ffmpeg</code>), then close PeakCut and start it again.</span></div>` : "";
+  const toolBar = S.status.no_ffmpeg ? `<div class="vb" role="alert">${ic("warn")}<span><b>NanuCut Clipper can't make clips yet: ffmpeg isn't installed on this computer.</b> Open a terminal, run <code>winget install Gyan.FFmpeg</code> (Mac: <code>brew install ffmpeg</code>, Linux: <code>sudo apt install ffmpeg</code>), then close NanuCut Clipper and start it again.</span></div>` : "";
   const aiBar = !toolBar && S.status.ai?.problem && me?.is_admin && S.view !== "settings" ? `<div class="vb" role="status">${ic("warn")}<span><b>The AI isn't answering.</b> ${esc(S.status.ai.problem)} Until then, clips are picked by loudness.</span><button class="btn sm primary" data-act="go" data-v="settings" data-tab="ai">Open AI settings</button></div>` : "";
-  const diskBar = !toolBar && S.status.disk_full && S.view !== "settings" ? `<div class="vb" role="alert">${ic("warn")}<span><b>The drive PeakCut saves to is almost full, so it can't take new videos.</b> Free up space on it, or move PeakCut's folder to a bigger drive.</span>${me?.is_admin ? `<button class="btn sm primary" data-act="go" data-v="settings" data-tab="storage">Open Storage</button>` : ""}</div>` : "";
+  const diskBar = !toolBar && S.status.disk_full && S.view !== "settings" ? `<div class="vb" role="alert">${ic("warn")}<span><b>The drive NanuCut Clipper saves to is almost full, so it can't take new videos.</b> Free up space on it, or move NanuCut Clipper's folder to a bigger drive.</span>${me?.is_admin ? `<button class="btn sm primary" data-act="go" data-v="settings" data-tab="storage">Open Storage</button>` : ""}</div>` : "";
   put($("#vbanner"), toolBar ? toolBar : diskBar ? diskBar : aiBar ? aiBar : upBar ? upBar : me && me.verified === false ? `<div class="vb" role="status">${ic("warn")}<span>Confirm your email to start clipping. We sent a link to <b>${esc(me.email)}</b>.</span><button class="btn sm" data-act="resendverify">Send a new link</button></div>`
     : kk && kk.ready === false && S.view !== "usage" ? `<div class="vb" role="status">${ic("bolt")}<span>${me?.is_admin ? "Add your AI key to let the AI pick clips and write titles. Until then, clips are picked by loudness." : "The AI isn't set up on this server yet, so clips are picked by loudness."}</span>${me?.is_admin && S.view !== "settings" ? `<button class="btn sm primary" data-act="go" data-v="settings" data-tab="ai">${ic("plus")}Add AI key</button>` : ""}</div>` : "");
   put($("#tpic"), pic); $("#tpic").classList.toggle("live", !!(c && (c.live_job || liveOn(c).length)));
@@ -3391,7 +3391,7 @@ function drawCreatorForm() {
         <label class="f">Check the live stream every<select data-k="ai_every_min">${opts({1:"1 minute", 2:"2 minutes", 3:"3 minutes", 5:"5 minutes", 10:"10 minutes"}, c.ai_every_min || 3)}</select><small class="sub" id="costhint" style="font-weight:400">${costHint(c.ai_every_min)}</small></label>
         <p class="help span" style="margin:0">On top of that, the AI always looks straight away when the stream suddenly gets louder or chat gets busier, and when someone says "clip" or "clip it".</p>
         <label class="f">Most live clips per hour<input data-k="live_per_hour" type="number" min="1" max="60" value="${c.live_per_hour}"></label>
-        <label class="f">Make a clip when<select data-k="decide_mode">${opts({both:"Both judges say yes", either:"Both say yes, or the words judge is very sure (90+)"}, c.decide_mode)}</select></label>
+        <label class="f">Make a clip when<select data-k="decide_mode">${opts({either:"Story & emotion match (Words judge prioritizes story/emotion arcs)", both:"Reaction match (Requires shouting/loudness jump + words)"}, c.decide_mode)}</select></label>
         <label class="f">Words judge must score at least<input data-k="min_score" type="number" min="0" max="100" value="${c.min_score}"></label>
         <label class="f">Make sure there's a live clip at least every<select data-k="must_clip_min">${opts({0:"Off", 15:"15 minutes", 30:"30 minutes", 60:"1 hour", 120:"2 hours"}, c.must_clip_min)}</select></label>
         <label class="f">Minimum gap between live clips (minutes)<input data-k="min_gap_min" type="number" min="0" max="60" value="${c.min_gap_min}"></label>
@@ -3571,13 +3571,11 @@ async function drawSettings() {
             <label class="f">AI service<select id="ai_provider">${k.providers.map(x => `<option value="${esc(x.id)}" ${x.id === k.provider ? "selected" : ""}>${esc(x.label)}</option>`).join("")}</select></label>
             <label class="f">Key<input id="ai_key" type="password" autocomplete="off" spellcheck="false"><span class="hint" id="ai_keyhint"></span></label>
             <label class="f" id="ai_basewrap">Address<input id="ai_base" value="${esc(k.base_url || "")}" spellcheck="false"><span class="hint">Where the service answers. Only needed for a custom service.</span></label>
-            <label class="f">Model<span class="with"><input id="ai_model" list="ai_models" value="${esc(k.models.join(", "))}" spellcheck="false" placeholder="Select or type model (e.g. gemini-3.1-flash-lite-preview)"><button class="btn" type="button" data-act="aimodels">Find models</button></span>
+            <label class="f">Model<span class="with"><input id="ai_model" list="ai_models" value="${esc(k.models.join(", "))}" spellcheck="false" placeholder="Select or type model (e.g. gemini-flash-lite-latest)"><button class="btn" type="button" data-act="aimodels">Find models</button></span>
               <datalist id="ai_models">
-                <option value="gemini-3.1-flash-lite-preview">Gemini 3.1 Flash Lite (Recommended · 1,500 RPD Free · Ultra-Fast 24/7)</option>
-                <option value="gemini-flash-latest">Gemini Flash Latest (Stable Multimodal · 1,500 RPD Free · Fast)</option>
-                <option value="gemini-2.0-flash">Gemini 2.0 Flash (Next-Gen · 1,500 RPD Free · Audio & Video Sync)</option>
-                <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro (Deepest Storytelling · 50 RPD Free · High Quota Drain)</option>
-                <option value="gemini-1.5-pro">Gemini 1.5 Pro (Complex Reasoning · 50 RPD Free)</option>
+                <option value="gemini-flash-lite-latest">Gemini Flash Lite (Recommended · Production Stable · Ultra-Fast 24/7)</option>
+                <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash Lite (Next-Gen · 1,500 RPD Free)</option>
+                <option value="gemini-2.5-flash">Gemini 2.5 Flash (Fast Multimodal)</option>
                 <option value="llama-3.3-70b-versatile">Groq Llama 3.3 70B (Fastest 500 t/s Text)</option>
                 <option value="gpt-4o-mini">OpenAI GPT-4o Mini</option>
               </datalist>
@@ -3588,10 +3586,8 @@ async function drawSettings() {
                   <span>⚡ 1-Click Select Verified Free Tier Models:</span>
                 </div>
                 <div style="display:flex;flex-wrap:wrap;gap:8px;">
-                  <button type="button" class="btn sm" style="font-size:11.5px;padding:6px 12px;background:rgba(16,185,129,0.12);border:1px solid #10B981;color:#10B981;cursor:pointer;" onclick="$('#ai_model').value='gemini-3.1-flash-lite-preview';toast('Selected Gemini 3.1 Flash Lite (Best for High-Volume 24/7 Clipping · Safe Quota)')">✨ Gemini 3.1 Flash Lite (Ultra-Fast 24/7)</button>
-                  <button type="button" class="btn sm" style="font-size:11.5px;padding:6px 12px;background:rgba(16,185,129,0.12);border:1px solid #10B981;color:#10B981;cursor:pointer;" onclick="$('#ai_model').value='gemini-flash-latest';toast('Selected Gemini Flash Latest (Stable Multimodal · 1,500 RPD)')">⚡ Gemini Flash Latest (Multimodal)</button>
-                  <button type="button" class="btn sm" style="font-size:11.5px;padding:6px 12px;background:rgba(139,92,246,0.12);border:1px solid #8B5CF6;color:#A78BFA;cursor:pointer;" onclick="$('#ai_model').value='gemini-2.0-flash';toast('Selected Gemini 2.0 Flash (Audio/Video Emotion Sync)')">🌟 Gemini 2.0 Flash (Emotion Sync)</button>
-                  <button type="button" class="btn sm" style="font-size:11.5px;padding:6px 12px;background:rgba(239,68,68,0.12);border:1px solid #EF4444;color:#F87171;cursor:pointer;" onclick="$('#ai_model').value='gemini-3.1-pro-preview';toast('Selected Gemini 3.1 Pro (Deep Reasoning · ⚠️ Note: 50 RPD Daily Limit)')">🧠 Gemini 3.1 Pro (Deep Reasoning)</button>
+                  <button type="button" class="btn sm" style="font-size:11.5px;padding:6px 12px;background:rgba(16,185,129,0.12);border:1px solid #10B981;color:#10B981;cursor:pointer;" onclick="$('#ai_model').value='gemini-flash-lite-latest';toast('Selected Gemini Flash Lite (Best for High-Volume 24/7 Clipping · Safe Quota)')">✨ Gemini Flash Lite (Ultra-Fast 24/7)</button>
+                  <button type="button" class="btn sm" style="font-size:11.5px;padding:6px 12px;background:rgba(59,130,246,0.12);border:1px solid #3B82F6;color:#60A5FA;cursor:pointer;" onclick="$('#ai_model').value='gemini-3.5-flash-lite';toast('Selected Gemini 3.5 Flash Lite (Next-Gen · 1,500 RPD)')">⚡ Gemini 3.5 Flash Lite</button>
                   <button type="button" class="btn sm" style="font-size:11.5px;padding:6px 12px;background:rgba(245,158,11,0.12);border:1px solid #F59E0B;color:#FBBF24;cursor:pointer;" onclick="$('#ai_model').value='llama-3.3-70b-versatile';toast('Selected Groq Llama 3.3 70B (Fast Text/Hooks)')">🚀 Groq Llama 3.3 70B</button>
                 </div>
               </div>
@@ -3609,11 +3605,11 @@ async function drawSettings() {
                   <!-- Flash Lite Card -->
                   <div style="padding:12px;background:var(--muted);border-radius:10px;border-left:4px solid #10B981;">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-                      <b style="font-size:12.5px;color:var(--text);">gemini-3.1-flash-lite-preview</b>
+                      <b style="font-size:12.5px;color:var(--text);">gemini-flash-lite-latest</b>
                       <span style="font-size:10px;background:rgba(16,185,129,0.2);color:#10B981;padding:2px 6px;border-radius:4px;font-weight:700;">🟢 Lowest Quota Burn</span>
                     </div>
                     <div style="font-size:11.5px;color:var(--dim);line-height:1.4;">
-                      <b>Best For:</b> High-volume 24/7 clipping, thousands of video frame analyses, and ultra-fast 9:16 cuts.<br>
+                      <b>Best For:</b> High-volume 24/7 clipping, storytelling arcs, emotional detection, and ultra-fast 9:16 cuts.<br>
                       <b>Free Limit:</b> 1,500 Requests/Day (15 RPM, 1M TPM).<br>
                       <span style="color:#10B981;font-weight:600;">✓ Quota practically never runs out — safest production model!</span>
                     </div>
@@ -3650,7 +3646,7 @@ async function drawSettings() {
                 <div style="padding:10px 14px;border-radius:8px;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.25);font-size:11.5px;color:var(--text);line-height:1.5;">
                   <b style="color:#F59E0B;">💡 Golden Rule to Preserve Free Quota:</b><br>
                   • <b>Why does quota exhaust?</b> Using Pro models ('gemini-1.5-pro' or '3.1-pro') continuously across 3-4 long 2-hour streams hits the 50 RPD limit, triggering 429 rate limit errors.<br>
-                  • <b>Recommended Setting:</b> Keep <b>'gemini-3.1-flash-lite-preview'</b> as default — it offers blazing speed and its 1,500 daily requests never run out!
+                  • <b>Recommended Setting:</b> Keep <b>'gemini-flash-lite-latest'</b> as default — it offers blazing speed, full multimodal capability, and its 1,500 daily requests never run out!
                 </div>
               </div>
             </label>
@@ -3660,7 +3656,7 @@ async function drawSettings() {
     }
     if (tab === "profile") {
       const joined = me.created_at ? new Date(me.created_at * 1000).toLocaleDateString([], {day: "numeric", month: "long", year: "numeric"}) : "";
-      body.innerHTML = `<section class="set-sec"><h2>Profile</h2><p class="help">This is how you appear in PeakCut.</p>
+      body.innerHTML = `<section class="set-sec"><h2>Profile</h2><p class="help">This is how you appear in NanuCut Clipper.</p>
         <div class="prof">${meAvatar(me).replace('class="avatar me-pic"', 'class="avatar prof-pic"')}<div><b>${esc(me.name)}</b><span>${esc(me.email)}</span></div></div>
         <dl class="kv"><div><dt>Email</dt><dd>${esc(me.email)} ${me.verified === false ? `<span class="pill warn">Not confirmed</span>` : `<span class="pill ok">Confirmed</span>`}</dd></div>
           <div><dt>Sign-in method</dt><dd>${me.google ? `Google${me.has_password ? " and password" : ""}` : "Email and password"}</dd></div>
@@ -5621,7 +5617,7 @@ function drawAIHub() {
             <!-- 1. Gemini 3.1 Flash Lite -->
             <div style="padding:16px;border-radius:12px;background:var(--muted);border:1px solid #10B981;display:flex;flex-direction:column;gap:8px;">
               <div style="display:flex;align-items:center;justify-content:space-between;">
-                <b style="font-size:14px;color:var(--text);">✨ gemini-3.1-flash-lite-preview</b>
+                <b style="font-size:14px;color:var(--text);">✨ gemini-flash-lite-latest</b>
                 <span class="badge" style="background:rgba(16,185,129,0.2);color:#10B981;font-weight:700;font-size:10.5px;">🟢 Lowest Quota Burn</span>
               </div>
               <div style="font-size:12px;font-weight:700;color:#10B981;">(Recommended for Heavy 24/7 Workloads · Maximum Free Quota)</div>
@@ -5673,7 +5669,7 @@ function drawAIHub() {
             <div style="font-size:12px;color:var(--text);line-height:1.6;">
               1. <b>Setting Pro Model as Default:</b> Keeping 'gemini-1.5-pro' as default burns out after 50 requests, locking your free quota for that day.<br>
               2. <b>Exceeding 15 RPM Burst Rate:</b> Submitting 10-15 clip jobs simultaneously can trigger temporary 1-minute 429 rate limit backoffs.<br>
-              3. <b>Golden Advice:</b> Always use <b>'gemini-3.1-flash-lite-preview'</b> for clipping and thumbnail generation. With 1,500 daily requests, it practically never runs out!
+              3. <b>Golden Advice:</b> Always use <b>'gemini-flash-lite-latest'</b> for clipping and thumbnail generation. With 1,500 daily requests, it practically never runs out!
             </div>
           </div>
 

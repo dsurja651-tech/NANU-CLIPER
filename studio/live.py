@@ -503,7 +503,7 @@ class Session:
             rs = max((m["score"] for m in match), default=0)
             verdict["reaction"] = rs
             both = bool(match)
-            ok = both or (st["decide_mode"] == "either" and c["score"] >= 90) or (must and added == 0)
+            ok = both or (st["decide_mode"] == "either" and c["score"] >= st.get("min_score", 80)) or (must and added == 0)
             if not ok:
                 self.rejected += 1
                 self._verdict(verdict, "Reaction judge said no, not clipped")
@@ -511,7 +511,7 @@ class Session:
             if any(abs(c["start"] - k["start"]) < st["min_gap_min"] * 60 for k in self.job["clips"]):
                 self._verdict(verdict, "Too close to the last clip")
                 continue
-            why = "Both judges agreed" if both else ("Words judge was very sure" if c["score"] >= 90 and
+            why = "Both judges agreed" if both else ("Story & emotion match" if c["score"] >= st.get("min_score", 80) and
                                                      st["decide_mode"] == "either" else "Forced: no clip for a while")
             c["judges"] = {"words": c["score"], "reaction": rs or None, "why": why}
             c["reason"] = f"{c['reason']} ({why.lower()}.)"

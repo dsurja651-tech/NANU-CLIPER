@@ -77,7 +77,7 @@ class _Font:
         return ((self.asc - self.desc) / 2 - self.cap / 2) * size / (self.asc + self.desc)
 
 
-CAPTION_LEAD = 0.0  # measured: word stamps are within 0.15 s of the voice, so no shift is needed
+CAPTION_LEAD = 0.08  # 80ms acoustic lead for exact voice-synchronized caption onset
 def install_fonts():
     """Copy the bundled caption fonts next to the data, so captions look the same on every machine and server."""
     src = Path(__file__).resolve().parent / "fonts"
@@ -196,12 +196,13 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
     inside = [dict(w, w=_clean(w["w"])) for w in words if w["s"] >= start - 0.05 and w["s"] < end]
     inside = sorted((w for w in inside if w["w"]), key=lambda w: w["s"])
     for i, w in enumerate(inside[:-1]):
-        w["e"] = max(w["s"], min(w["e"], inside[i + 1]["s"]))
+        # Keep word end strictly bound to speech; do not stretch into silent pauses
+        w["e"] = max(w["s"] + 0.06, min(w["e"], inside[i + 1]["s"]))
     groups = _groups(inside, st["per"])
     for gi, g in enumerate(groups):
         g_start = max(0.0, g[0]["s"] - start)
-        # Tight speech boundary: strictly synchronized to voice
-        g_end = min(g[-1]["e"] + 0.03, groups[gi + 1][0]["s"] if gi + 1 < len(groups) else end) - start
+        # End precisely when last word finishes, without lingering in silence
+        g_end = max(g_start + 0.1, g[-1]["e"] - start + 0.04)
         if g_end - g_start < 0.02:
             continue
         texts = []
@@ -228,11 +229,9 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             p = max(104, min(st["pop"], 100 + int(2200 / max(wd, 1))))
             pos = f"\\an5\\pos({x + wd / 2:.0f},{cy:.0f})\\fs{size}"
             x += wd + gap
-            # Voice-synchronized timing: only starts when speech begins
+            # Speech-synchronized timing: starts when word begins, ends when word is spoken
             a = max(g_start, w["s"] - start)
-            b = min(w["e"] - start + 0.02, (g[i + 1]["s"] - start) if i + 1 < len(g) else g_end)
-            if b <= a:
-                b = a + 0.08
+            b = max(a + 0.06, min(w["e"] - start, g_end))
             base = st["strong"] if _key(w["w"]) in strong else st["base"]
             # Active spoken word with vibrant pop & glow
             if b - a >= 0.02:
@@ -240,7 +239,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                     ev.append(f"Dialogue: 1,{_ts(a)},{_ts(b)},Cap,,0,0,0,,{{{pos}\\c&H{st['active']}&\\3c&H00FF00FF&\\blur7\\fscx{p + 2}\\fscy{p + 2}}}{t}")
                 ev.append(f"Dialogue: 2,{_ts(a)},{_ts(b)},Cap,,0,0,0,,{{{pos}\\c&H{st['active']}&\\fscx95\\fscy95"
                           f"\\t(0,80,\\fscx{p}\\fscy{p})\\t(80,180,\\fscx{p - 4}\\fscy{p - 4})}}{t}")
-            # Said word remains in base color until current phrase finishes
+            # Said word remains in base color only until the current phrase ends
             if g_end - b >= 0.02:
                 ev.append(f"Dialogue: 1,{_ts(b)},{_ts(g_end)},Cap,,0,0,0,,{{{pos}\\c&H{base}&\\fscx100\\fscy100}}{t}")
     return head + "\n".join(ev) + "\n"
@@ -252,15 +251,16 @@ PIP_MARGIN = 26
 
 def _filter(layout, fg_h, facecam=None, src_w=1920, src_h=1080):
     if layout == "split":
-        # Top panel: ONLY Facecam (1080x960)
+        # Top panel: ONLY Facecam (1080x960) - zoomed tightly on the face with ZERO gameplay!
         # Bottom panel: ONLY Gameplay (1080x960) - completely cutting out the facecam!
-        # Middle: Captions placed at y=960
+        # Middle: Captions placed at y=960 seam
         if facecam and len(facecam) == 4:
             fx, fy, fw, fh = (int(v) for v in facecam)
             if fw > 8 and fh > 8:
                 cx = fx + fw / 2
                 cy = fy + fh / 2
-                crop_h = min(src_h, max(int(fh * 2.8), int(fw * 2.8 * 960 / 1080)))
+                # Tight zoom directly on the webcam so the face is large and prominent with 0% game leak
+                crop_h = min(src_h, max(int(fh * 1.12), int(fw * 1.12 * 960 / 1080)))
                 crop_w = int(round(crop_h * 1080 / 960))
                 if crop_w > src_w:
                     crop_w = src_w
@@ -271,9 +271,9 @@ def _filter(layout, fg_h, facecam=None, src_w=1920, src_h=1080):
                 gw = min(src_w, int(round(src_h * 1080 / 960)))
                 gh = src_h
                 if cx >= src_w / 2:
-                    gx = 0  # Face is on right -> crop gameplay from far left
+                    gx = 0  # Face is on right -> crop gameplay from far left (zero facecam in gameplay)
                 else:
-                    gx = max(0, src_w - gw)  # Face is on left -> crop gameplay from far right
+                    gx = max(0, src_w - gw)  # Face is on left -> crop gameplay from far right (zero facecam in gameplay)
 
                 fc_filter = f"[fc]crop={crop_w}:{crop_h}:{top_x}:{top_y},scale={W}:960:force_original_aspect_ratio=increase,crop={W}:960,setsar=1[top];"
                 game_filter = f"[base]crop={gw}:{gh}:{gx}:0,scale={W}:960:force_original_aspect_ratio=increase,crop={W}:960,setsar=1[bot];"

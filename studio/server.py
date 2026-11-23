@@ -21,7 +21,7 @@ from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Redirect
 
 from . import admin as admins
 from . import account, load
-from . import (accounts, ai, alerts, auth, config, creators, ctx, db, jobs, live, media, posting,
+from . import (accounts, ai, alerts, auth, brain, config, creators, ctx, db, jobs, live, media, posting,
                profiles, render, safe, transcribe, usage)
 
 from . import tools as _tools  # noqa: E402
@@ -2081,7 +2081,7 @@ def main():
     print("=" * 68)
     print(f"\n  NanuCut Clipper is running:  {config.PUBLIC_URL}\n")
     if not config.ACCOUNTS and (config.HTTPS or config.HOST not in ("127.0.0.1", "localhost", "::1")):
-        print("  Sign-in is off, so anyone who can reach this address can use PeakCut and its AI key.\n"
+        print("  Sign-in is off, so anyone who can reach this address can use NanuCut Clipper and its AI key.\n"
               "  On a server other people can reach, set PEAKCUT_ACCOUNTS=1 in .env.\n", flush=True)
     if config.env("PEAKCUT_AUTO_RELOAD") == "1":
         # restart by itself whenever the server code changes (pages in web/ never need a restart)

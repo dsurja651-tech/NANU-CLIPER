@@ -197,7 +197,7 @@ def explain(e) -> str:
     if "429" in text or "quota" in low or "rate limit" in low or "exhausted" in low:
         return f"{label()} says the key has hit its limit or has no credit left. Check the account with {label()}, or try again later."
     if "connect" in low or "timed out" in low or "timeout" in low or "getaddrinfo" in low or "refused" in low or "nodename" in low or "servname" in low or "nameresolutionerror" in low or "name resolution" in low:
-        return f"PeakCut couldn't reach {label()}. Check the internet connection" + (" and that Ollama is running." if provider() == "ollama" else ".")
+        return f"NanuCut Clipper couldn't reach {label()}. Check the internet connection" + (" and that Ollama is running." if provider() == "ollama" else ".")
     return ""
 
 
@@ -374,7 +374,7 @@ def _gemini(model, prompt, schema, timeout=None):
     candidates = []
     if m and m not in ("gemini", "default"):
         candidates.append(m)
-    for std in ("gemini-flash-lite-latest", "gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemini-2.5-flash", "gemini-1.5-flash"):
+    for std in ("gemini-flash-lite-latest", "gemini-3.5-flash-lite", "gemini-2.5-flash"):
         if std not in candidates:
             candidates.append(std)
 
