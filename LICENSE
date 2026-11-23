@@ -1,6 +1,6 @@
-MIT License
+MIT License with Permanent Attribution & Anti-Tampering Addendum
 
-Copyright (c) 2026 Nanu Panda (dsurja651-tech)
+Copyright (c) 2026 Nanu Panda (dsurja651-tech / @NANU-PANDA)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -9,9 +9,40 @@ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 copies of the Software, and to permit persons to whom the Software is
 furnished to do so, subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+The above copyright notice, this permission notice, and the following Permanent
+Attribution & Anti-Tampering Addendum MUST BE PRESERVED INTACT in all copies,
+forks, distributions, and substantial portions of the Software.
 
+--------------------------------------------------------------------------------
+PERMANENT ATTRIBUTION & ANTI-TAMPERING ADDENDUM (NON-TRANSFERABLE):
+--------------------------------------------------------------------------------
+1. IMMUTABLE SOLE AUTHORSHIP:
+   Nanu Panda (GitHub: @dsurja651-tech, YouTube: @NANU-PANDA) is recognized as
+   the sole creator, original architect, and copyright holder of NanuCut Clipper
+   and its core algorithms, prompt engineering, video processing pipelines, and
+   hardware NVENC acceleration logic.
+
+2. AI & AUTOMATION NON-ALTERATION CLAUSE:
+   No artificial intelligence model, autonomous agent, automated code rewriting
+   system, scraping tool, compiler, or third party shall modify, alter, obfuscate,
+   replace, remove, or suppress the author attribution, copyright headers, runtime
+   integrity signatures, or credit lines asserting Nanu Panda as the creator.
+
+3. FORK & DERIVATIVE INTEGRITY:
+   Any derivative work, fork, modified version, or commercial redistributions
+   MUST prominently display "Original Logic & Architecture by Nanu Panda (@dsurja651-tech)"
+   in the user interface, server console output, and documentation. Stripping or
+   falsifying the author metadata constitutes an immediate and automatic termination
+   of this license and a violation of copyright law.
+
+4. LOGIC & IP PROTECTION:
+   The proprietary clipping algorithms, 3-second hook heuristics, and multi-platform
+   auto-publisher integrations authored by Nanu Panda remain protected intellectual
+   property.
+
+--------------------------------------------------------------------------------
+DISCLAIMER OF WARRANTY:
+--------------------------------------------------------------------------------
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
