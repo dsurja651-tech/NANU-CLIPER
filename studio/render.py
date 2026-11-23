@@ -322,17 +322,17 @@ def _filter(layout, fg_h, facecam=None, src_w=1920, src_h=1080):
 
                 fc_filter = (f"[fc]crop={crop_w}:{crop_h}:{top_x}:{top_y},"
                              f"scale={W}:960:flags=lanczos+accurate_rnd:force_original_aspect_ratio=increase,crop={W}:960,"
-                             f"unsharp=5:5:0.8:3:3:0.4,eq=contrast=1.05:saturation=1.10:brightness=0.01,setsar=1[top];")
+                             f"cas=strength=0.7,unsharp=5:5:0.6:3:3:0.3,eq=contrast=1.05:saturation=1.10:brightness=0.01,setsar=1[top];")
                 game_filter = (f"[base]crop={gw}:{gh}:{gx}:{gy},"
                                f"scale={W}:960:flags=lanczos+accurate_rnd:force_original_aspect_ratio=increase,crop={W}:960,"
-                               f"unsharp=5:5:0.5:3:3:0.3,setsar=1[bot];")
+                               f"cas=strength=0.5,unsharp=5:5:0.4:3:3:0.2,setsar=1[bot];")
                 return f"[0:v]fps={config.OUT_FPS},split=2[base][fc];{fc_filter}{game_filter}[top][bot]vstack=inputs=2[v0];"
 
         return (f"[0:v]fps={config.OUT_FPS},split=2[t_raw][b_raw];"
                 f"[t_raw]scale={W}:960:flags=lanczos+accurate_rnd:force_original_aspect_ratio=increase,crop={W}:960:(in_w-out_w)/2:0,"
-                f"unsharp=5:5:0.8:3:3:0.4,eq=contrast=1.05:saturation=1.10:brightness=0.01,setsar=1[top];"
+                f"cas=strength=0.7,unsharp=5:5:0.6:3:3:0.3,eq=contrast=1.05:saturation=1.10:brightness=0.01,setsar=1[top];"
                 f"[b_raw]scale={W}:960:flags=lanczos+accurate_rnd:force_original_aspect_ratio=increase,crop={W}:960:(in_w-out_w)/2:in_h-960,"
-                f"unsharp=5:5:0.5:3:3:0.3,setsar=1[bot];"
+                f"cas=strength=0.5,unsharp=5:5:0.4:3:3:0.2,setsar=1[bot];"
                 f"[top][bot]vstack=inputs=2[v0];")
 
     if layout == "gameplay" and facecam:
@@ -340,12 +340,12 @@ def _filter(layout, fg_h, facecam=None, src_w=1920, src_h=1080):
         if fw > 8 and fh > 8:
             pip_h = max(2, int(round(PIP_W * fh / fw)))
             return (f"[0:v]fps={config.OUT_FPS},split=2[base][fc];"
-                    f"[base]scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},setsar=1[b];"
-                    f"[fc]crop={fw}:{fh}:{fx}:{fy},scale={PIP_W}:{pip_h},setsar=1[p];"
+                    f"[base]scale={W}:{H}:flags=lanczos+accurate_rnd:force_original_aspect_ratio=increase,crop={W}:{H},cas=strength=0.5,setsar=1[b];"
+                    f"[fc]crop={fw}:{fh}:{fx}:{fy},scale={PIP_W}:{pip_h}:flags=lanczos+accurate_rnd,cas=strength=0.7,setsar=1[p];"
                     f"[b][p]overlay={W - PIP_W - PIP_MARGIN}:{PIP_MARGIN}[v0];")
 
     if layout == "crop" or (layout == "gameplay" and not facecam):
-        return f"[0:v]fps={config.OUT_FPS},scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},setsar=1[v0];"
+        return f"[0:v]fps={config.OUT_FPS},scale={W}:{H}:flags=lanczos+accurate_rnd:force_original_aspect_ratio=increase,crop={W}:{H},cas=strength=0.5,setsar=1[v0];"
 
     return (f"[0:v]fps={config.OUT_FPS},split=2[a][b];"
             f"[a]scale=270:480:force_original_aspect_ratio=increase,crop=270:480,boxblur=6:2,"
@@ -423,11 +423,11 @@ def _render_in(work: Path, src: Path, out_dir: Path, name: str, start, end, layo
             "-c:a", "aac", "-b:a", "160k", "-ar", "48000", "-movflags", "+faststart"] + meta_tags + ["-pix_fmt"]
     encoders = []
     if _nvenc_ok is not False:
-        # High Quality Studio NVENC Hardware Encoder
-        encoders.append(("nvenc", ["yuv420p", "-c:v", "h264_nvenc", "-preset", "p4", "-tune", "hq", "-cq", "18", "-b:v", "14M", "-maxrate", "20M", "-bufsize", "28M"]))
+        # Ultra Studio NVENC Hardware Encoder (P7 Maximum Quality + Spatial/Temporal AQ + CQ 16)
+        encoders.append(("nvenc", ["yuv420p", "-c:v", "h264_nvenc", "-preset", "p7", "-tune", "hq", "-cq", "16", "-b:v", "20M", "-maxrate", "30M", "-bufsize", "40M", "-spatial-aq", "1", "-temporal-aq", "1"]))
     if _qsv_ok is not False:
-        encoders.append(("qsv", ["nv12", "-c:v", "h264_qsv", "-global_quality", "18", "-preset", "slow"]))
-    encoders.append(("x264", ["yuv420p", "-c:v", "libx264", "-crf", "18", "-preset", "faster", "-threads", "0"]))
+        encoders.append(("qsv", ["nv12", "-c:v", "h264_qsv", "-global_quality", "16", "-preset", "slow"]))
+    encoders.append(("x264", ["yuv420p", "-c:v", "libx264", "-crf", "16", "-preset", "slow", "-threads", "0"]))
     err = None
     for label, enc in encoders:
         p = subprocess.run(base + enc + [f"{name}.mp4"], cwd=work, capture_output=True, text=True,
