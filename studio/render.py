@@ -77,7 +77,7 @@ class _Font:
         return ((self.asc - self.desc) / 2 - self.cap / 2) * size / (self.asc + self.desc)
 
 
-CAPTION_LEAD = 0.08  # 80ms acoustic lead for exact voice-synchronized caption onset
+CAPTION_LEAD = 0.16  # 160ms acoustic lead for exact zero-latency Opus-style voice sync
 def install_fonts():
     """Copy the bundled caption fonts next to the data, so captions look the same on every machine and server."""
     src = Path(__file__).resolve().parent / "fonts"
@@ -240,27 +240,54 @@ def _filter(layout, fg_h, facecam=None, src_w=1920, src_h=1080):
         if fw > 8 and fh > 8:
             cx = fx + fw / 2
             cy = fy + fh / 2
-            # Tight zoom directly on the webcam so the face is large and prominent with 0% game leak
-            crop_h = min(src_h, max(int(fh * 1.12), int(fw * 1.12 * 960 / 1080)))
-            crop_w = int(round(crop_h * 1080 / 960))
-            if crop_w > src_w:
-                crop_w = src_w
-                crop_h = int(round(crop_w * 960 / 1080))
-            top_x = max(0, min(src_w - crop_w, int(round(cx - crop_w / 2))))
-            top_y = max(0, min(src_h - crop_h, int(round(cy - crop_h / 2))))
 
-            gw = min(src_w, int(round(src_h * 1080 / 960)))
-            gh = src_h
-            if cx >= src_w / 2:
-                gx = 0  # Face is on right -> crop gameplay from far left (zero facecam in gameplay)
+            # Determine layout composition:
+            if cx < src_w * 0.48:
+                # Streamer is on LEFT side of screen
+                cam_boundary = min(src_w, int(max(cx + fw * 1.1, fx + fw * 1.3)))
+                crop_w = min(src_w, max(int(fw * 2.2), int(fh * 2.2 * 1080 / 960), int(src_w * 0.44)))
+                crop_w = min(crop_w, int(src_w * 0.50))
+                crop_h = min(src_h, int(round(crop_w * 960 / 1080)))
+                top_x = max(0, min(cam_boundary - crop_w, int(cx - crop_w / 2)))
+                top_y = max(0, min(src_h - crop_h, int(cy - crop_h * 0.38)))
+
+                # Gameplay is strictly on RIGHT (zero streamer leak!)
+                gx = max(cam_boundary, int(src_w * 0.44))
+                gw = src_w - gx
+                gh = min(src_h, int(round(gw * 960 / 1080)))
+                gy = max(0, (src_h - gh) // 2)
+            elif cx > src_w * 0.52:
+                # Streamer is on RIGHT side of screen
+                cam_boundary = max(0, int(min(cx - fw * 1.1, fx - fw * 0.3)))
+                crop_w = min(src_w, max(int(fw * 2.2), int(fh * 2.2 * 1080 / 960), int(src_w * 0.44)))
+                crop_w = min(crop_w, int(src_w * 0.50))
+                crop_h = min(src_h, int(round(crop_w * 960 / 1080)))
+                top_x = max(cam_boundary, min(src_w - crop_w, int(cx - crop_w / 2)))
+                top_y = max(0, min(src_h - crop_h, int(cy - crop_h * 0.38)))
+
+                # Gameplay is strictly on LEFT (zero streamer leak!)
+                gx = 0
+                gw = min(cam_boundary, int(src_w * 0.56))
+                gh = min(src_h, int(round(gw * 960 / 1080)))
+                gy = max(0, (src_h - gh) // 2)
             else:
-                gx = max(0, src_w - gw)  # Face is on left -> crop gameplay from far right (zero facecam in gameplay)
+                # Streamer in center
+                crop_h = min(src_h, max(int(fh * 2.2), int(fw * 2.2 * 960 / 1080)))
+                crop_w = min(src_w, int(round(crop_h * 1080 / 960)))
+                top_x = max(0, min(src_w - crop_w, int(cx - crop_w / 2)))
+                top_y = max(0, min(src_h - crop_h, int(cy - crop_h * 0.38)))
+
+                gw = min(src_w, int(round(src_h * 1080 / 960)))
+                gh = src_h
+                gx = max(0, (src_w - gw) // 2)
+                gy = 0
 
             fc_filter = f"[fc]crop={crop_w}:{crop_h}:{top_x}:{top_y},scale={W}:960:force_original_aspect_ratio=increase,crop={W}:960,setsar=1[top];"
-            game_filter = f"[base]crop={gw}:{gh}:{gx}:0,scale={W}:960:force_original_aspect_ratio=increase,crop={W}:960,setsar=1[bot];"
+            game_filter = f"[base]crop={gw}:{gh}:{gx}:{gy},scale={W}:960:force_original_aspect_ratio=increase,crop={W}:960,setsar=1[bot];"
             return f"[0:v]fps={config.OUT_FPS},split=2[base][fc];{fc_filter}{game_filter}[top][bot]vstack=inputs=2[v0];"
+
     return (f"[0:v]fps={config.OUT_FPS},split=2[t_raw][b_raw];"
-            f"[t_raw]scale={W}:960:force_original_aspect_ratio=increase,crop={W}:960:0:0,setsar=1[top];"
+            f"[t_raw]scale={W}:960:force_original_aspect_ratio=increase,crop={W}:960:(in_w-out_w)/2:0,setsar=1[top];"
             f"[b_raw]scale={W}:960:force_original_aspect_ratio=increase,crop={W}:960:(in_w-out_w)/2:in_h-960,setsar=1[bot];"
             f"[top][bot]vstack=inputs=2[v0];")
 
