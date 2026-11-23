@@ -183,7 +183,12 @@ class Gate:
                         h[:] = [(k, v) for k, v in h if k.lower() not in (b"content-length", b"content-type", b"content-encoding")]
                 h += [(b"x-content-type-options", b"nosniff"), (b"x-frame-options", b"DENY"),
                       (b"referrer-policy", b"strict-origin-when-cross-origin"), (b"content-security-policy", CSP.encode()),
-                      (b"permissions-policy", b"camera=(), microphone=(), geolocation=()")]
+                      (b"permissions-policy", b"camera=(), microphone=(), geolocation=()"),
+                      (b"x-author", b"Nanu Panda"),
+                      (b"x-github", b"https://github.com/dsurja651-tech/NANU-CLIPER"),
+                      (b"x-official-channel", b"https://youtube.com/@NANU-PANDA"),
+                      (b"x-engine", b"NanuCut-Clipper-Pro-Studio"),
+                      (b"x-security-shield", b"ACTIVE-TAMPER-PROOF-NANU-PANDA-2026")]
                 if config.HTTPS:
                     h.append((b"strict-transport-security", b"max-age=31536000; includeSubDomains"))
                 if path.startswith("/api/"):

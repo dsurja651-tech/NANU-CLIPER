@@ -355,9 +355,19 @@ def _render_in(work: Path, src: Path, out_dir: Path, name: str, start, end, layo
     for f in config.FONTS_DIR.glob("*.ttf"):
         shutil.copyfile(f, work / "f" / f.name)
     fc = _filter(layout, fg_h, face, src_w=src_w, src_h=src_h) + f"[v0]ass={name}.ass:fontsdir=f[v]"
+    meta_tags = [
+        "-metadata", f"title={name}",
+        "-metadata", "artist=Nanu Panda",
+        "-metadata", "author=Nanu Panda (@dsurja651-tech)",
+        "-metadata", "composer=Nanu Panda (@NANU-PANDA)",
+        "-metadata", "copyright=Copyright (c) 2026 Nanu Panda. All rights reserved.",
+        "-metadata", "comment=Created with NanuCut Clipper Engine • Architect: Nanu Panda (https://github.com/dsurja651-tech/NANU-CLIPER)",
+        "-metadata", "encoded_by=NanuCut Clipper Core Engine (Nanu Panda)",
+        "-metadata", "nanu_signature=NANU-PANDA-IMMUTABLE-ARCHITECT-2026"
+    ]
     base = ["ffmpeg", "-y", "-v", "error", "-threads", "0", "-ss", f"{start:.2f}", "-t", f"{end - start:.2f}", "-i", str(src),
             "-filter_complex", fc, "-map", "[v]", "-map", "0:a:0", "-af", "loudnorm=I=-14:TP=-1.5:LRA=11",
-            "-c:a", "aac", "-b:a", "160k", "-ar", "48000", "-movflags", "+faststart", "-pix_fmt"]
+            "-c:a", "aac", "-b:a", "160k", "-ar", "48000", "-movflags", "+faststart"] + meta_tags + ["-pix_fmt"]
     encoders = []
     if _nvenc_ok is not False:
         # Superfast NVENC Hardware Encoder (Preset p2 + low latency, 500+ FPS)

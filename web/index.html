@@ -2280,10 +2280,6 @@ function renderHero() {
       <div class="hero-cyber-grid"></div>
       <div class="hero-nebula-core"></div>
     </div>
-    <div class="hero-creator-bar">
-      <span id="heroCreatorTag" class="hero-creator-tag"><span>🔴 NANU PANDA</span> <b>Connecting latest video...</b> <small style="opacity:0.8;">(@NANU-PANDA • Auto-Synced)</small></span>
-      <button type="button" class="hero-next-creator-btn" onclick="window.syncChannelLatestVideo && window.syncChannelLatestVideo(true);" title="Sync latest video from @NANU-PANDA">🔄 Sync Latest</button>
-    </div>
     <div class="hero-badge-wrap">
       <div class="hero-badge">
         <span class="badge-pulse"></span>
@@ -2363,7 +2359,7 @@ function initHeroMotion() {
             tag.innerHTML = `<span>🔴 NANU PANDA LATEST</span> <b>${data.title || "Latest Upload"}</b> <small style="opacity:0.8;">(@NANU-PANDA • Auto-Synced)</small>`;
           }
           if (isUserClick) {
-            toast(`🎬 Synced latest video from @NANU-PANDA: ${data.title}`, "ok");
+            toast(`🎬 Synced latest 4K long video from @NANU-PANDA: ${data.title}`, "ok");
           }
         }
       })
@@ -2531,7 +2527,10 @@ function drawShell() {  const nav = (v, icon, label, extra = "") => `<button cla
   }
   const curLang = localStorage.getItem("nanucut_ui_lang") || "en";
   const topConnBtn = `<div class="top-action-cluster" style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;">
-    <button class="btn" data-act="go" data-v="settings" data-tab="apps" style="background:linear-gradient(135deg, #1877F2, #E1306C);color:#fff;font-weight:700;display:inline-flex;align-items:center;gap:6px;border:none;box-shadow:0 0 10px rgba(225,48,108,0.35);cursor:pointer;padding:6px 14px;border-radius:6px;font-size:13px;" title="Connect Instagram & Facebook Accounts">${ic("plug")}<span>${t("conn_accts")}</span></button>
+    <div style="display:flex;align-items:center;gap:6px;">
+      <button class="btn" onclick="window.syncChannelLatestVideo && window.syncChannelLatestVideo(true);" style="background:rgba(99,102,241,0.22);border:1px solid rgba(99,102,241,0.45);color:var(--text);font-weight:700;display:inline-flex;align-items:center;gap:5px;cursor:pointer;padding:6px 12px;border-radius:6px;font-size:12px;box-shadow:0 0 8px rgba(99,102,241,0.25);" title="Sync latest long 4K video from @NANU-PANDA">🔄 Sync Latest</button>
+      <button class="btn" data-act="go" data-v="settings" data-tab="apps" style="background:linear-gradient(135deg, #1877F2, #E1306C);color:#fff;font-weight:700;display:inline-flex;align-items:center;gap:6px;border:none;box-shadow:0 0 10px rgba(225,48,108,0.35);cursor:pointer;padding:6px 14px;border-radius:6px;font-size:13px;" title="Connect Instagram & Facebook Accounts">${ic("plug")}<span>${t("conn_accts")}</span></button>
+    </div>
     <div class="ui-lang-selector" style="display:flex;align-items:center;gap:5px;background:var(--card-sub);border:1px solid var(--line-2);border-radius:6px;padding:3px 8px;" title="Switch interface language (Global / All World Languages)">
       <span style="font-size:13px;">🌐</span>
       <span style="font-size:11px;font-weight:700;color:var(--text);letter-spacing:0.3px;">${t("ui_lang_label")}</span>
