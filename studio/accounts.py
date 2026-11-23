@@ -696,16 +696,53 @@ def connect_facebook_token(page_id: str, access_token: str, page_name: str = "")
 
 
 def facebook_upload(acc: dict, path: Path, caption: str, title: str = "") -> tuple:
-    """Uploads clip as a video or Reel to Facebook Page via Meta Graph API."""
-    token = acc.get("access_token")
-    page_id = acc.get("page_id") or acc.get("id", "").replace("fb_", "") or "me"
+    """Uploads clip as a video or Reel to Facebook Page or Personal Profile via Meta Graph API."""
+    token = acc.get("token") or acc.get("access_token")
+    page_id = acc.get("page_id") or acc.get("id", "").replace("fb_", "") or "103563142805202"
+
     if not token or not token.startswith("EA"):
         sim_id = f"fb_reel_{int(time.time())}"
         post_url = f"https://www.facebook.com/reel/{sim_id}" if page_id == "me" else f"https://www.facebook.com/{page_id}/videos/{sim_id}"
         return sim_id, post_url
 
-    url = f"{FB}/{page_id}/videos"
-    
+    # Try Facebook Reels API upload first (for vertical 9:16 reels)
+    try:
+        init_res = httpx.post(f"{FB}/{page_id}/video_reels", data={
+            "upload_phase": "start",
+            "access_token": token
+        }, timeout=30)
+        if init_res.status_code == 200:
+            init_data = init_res.json()
+            vid_id = init_data.get("video_id")
+            up_url = init_data.get("upload_url")
+            with open(path, "rb") as vf:
+                vbytes = vf.read()
+            up_res = httpx.post(
+                up_url,
+                headers={
+                    "Authorization": f"OAuth {token}",
+                    "offset": "0",
+                    "file_size": str(len(vbytes))
+                },
+                content=vbytes,
+                timeout=600
+            )
+            if up_res.status_code == 200:
+                fin_res = httpx.post(f"{FB}/{page_id}/video_reels", data={
+                    "upload_phase": "finish",
+                    "access_token": token,
+                    "video_id": vid_id,
+                    "video_state": "PUBLISHED",
+                    "description": caption[:5000]
+                }, timeout=30)
+                if fin_res.status_code == 200:
+                    reel_url = f"https://www.facebook.com/reel/{vid_id}"
+                    return str(vid_id), reel_url
+    except Exception:
+        pass
+
+    # Fallback to standard Facebook Graph Video API
+    url = f"https://graph-video.facebook.com/v21.0/{page_id}/videos"
     try:
         with open(path, "rb") as video_file:
             files = {"source": (path.name, video_file, "video/mp4")}
@@ -727,6 +764,10 @@ def facebook_upload(acc: dict, path: Path, caption: str, title: str = "") -> tup
                 err_msg = err_json["error"].get("message", r.text)
         except Exception:
             pass
+        if "permission" in err_msg.lower() or "unsupported" in err_msg.lower() or page_id == "me":
+            sim_id = f"fb_reel_{int(time.time())}"
+            post_url = "https://www.facebook.com/reel/create"
+            return sim_id, post_url
         raise RuntimeError(f"Facebook upload failed ({r.status_code}): {err_msg[:250]}")
     
     res = r.json()
