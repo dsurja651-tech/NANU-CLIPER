@@ -77,7 +77,7 @@ class _Font:
         return ((self.asc - self.desc) / 2 - self.cap / 2) * size / (self.asc + self.desc)
 
 
-CAPTION_LEAD = 0.04  # 40ms acoustic calibration: tight zero-latency sync with zero early pop
+CAPTION_LEAD = 0.0  # Exact 0.0ms: 100% speech-locked word synchronization (pops exactly when spoken)
 def install_fonts():
     """Copy the bundled caption fonts next to the data, so captions look the same on every machine and server."""
     src = Path(__file__).resolve().parent / "fonts"
@@ -320,13 +320,19 @@ def _filter(layout, fg_h, facecam=None, src_w=1920, src_h=1080):
                     gx = max(0, (src_w - gw) // 2)
                     gy = 0
 
-                fc_filter = f"[fc]crop={crop_w}:{crop_h}:{top_x}:{top_y},scale={W}:960:force_original_aspect_ratio=increase,crop={W}:960,setsar=1[top];"
-                game_filter = f"[base]crop={gw}:{gh}:{gx}:{gy},scale={W}:960:force_original_aspect_ratio=increase,crop={W}:960,setsar=1[bot];"
+                fc_filter = (f"[fc]crop={crop_w}:{crop_h}:{top_x}:{top_y},"
+                             f"scale={W}:960:flags=lanczos+accurate_rnd:force_original_aspect_ratio=increase,crop={W}:960,"
+                             f"unsharp=5:5:0.8:3:3:0.4,eq=contrast=1.05:saturation=1.10:brightness=0.01,setsar=1[top];")
+                game_filter = (f"[base]crop={gw}:{gh}:{gx}:{gy},"
+                               f"scale={W}:960:flags=lanczos+accurate_rnd:force_original_aspect_ratio=increase,crop={W}:960,"
+                               f"unsharp=5:5:0.5:3:3:0.3,setsar=1[bot];")
                 return f"[0:v]fps={config.OUT_FPS},split=2[base][fc];{fc_filter}{game_filter}[top][bot]vstack=inputs=2[v0];"
 
         return (f"[0:v]fps={config.OUT_FPS},split=2[t_raw][b_raw];"
-                f"[t_raw]scale={W}:960:force_original_aspect_ratio=increase,crop={W}:960:(in_w-out_w)/2:0,setsar=1[top];"
-                f"[b_raw]scale={W}:960:force_original_aspect_ratio=increase,crop={W}:960:(in_w-out_w)/2:in_h-960,setsar=1[bot];"
+                f"[t_raw]scale={W}:960:flags=lanczos+accurate_rnd:force_original_aspect_ratio=increase,crop={W}:960:(in_w-out_w)/2:0,"
+                f"unsharp=5:5:0.8:3:3:0.4,eq=contrast=1.05:saturation=1.10:brightness=0.01,setsar=1[top];"
+                f"[b_raw]scale={W}:960:flags=lanczos+accurate_rnd:force_original_aspect_ratio=increase,crop={W}:960:(in_w-out_w)/2:in_h-960,"
+                f"unsharp=5:5:0.5:3:3:0.3,setsar=1[bot];"
                 f"[top][bot]vstack=inputs=2[v0];")
 
     if layout == "gameplay" and facecam:
@@ -417,11 +423,11 @@ def _render_in(work: Path, src: Path, out_dir: Path, name: str, start, end, layo
             "-c:a", "aac", "-b:a", "160k", "-ar", "48000", "-movflags", "+faststart"] + meta_tags + ["-pix_fmt"]
     encoders = []
     if _nvenc_ok is not False:
-        # Superfast NVENC Hardware Encoder (Preset p2 + low latency, 500+ FPS)
-        encoders.append(("nvenc", ["yuv420p", "-c:v", "h264_nvenc", "-preset", "p2", "-tune", "ull", "-cq", "22", "-b:v", "0"]))
+        # High Quality Studio NVENC Hardware Encoder
+        encoders.append(("nvenc", ["yuv420p", "-c:v", "h264_nvenc", "-preset", "p4", "-tune", "hq", "-cq", "18", "-b:v", "14M", "-maxrate", "20M", "-bufsize", "28M"]))
     if _qsv_ok is not False:
-        encoders.append(("qsv", ["nv12", "-c:v", "h264_qsv", "-global_quality", "23", "-preset", "veryfast"]))
-    encoders.append(("x264", ["yuv420p", "-c:v", "libx264", "-crf", "21", "-preset", "ultrafast", "-threads", "0"]))
+        encoders.append(("qsv", ["nv12", "-c:v", "h264_qsv", "-global_quality", "18", "-preset", "slow"]))
+    encoders.append(("x264", ["yuv420p", "-c:v", "libx264", "-crf", "18", "-preset", "faster", "-threads", "0"]))
     err = None
     for label, enc in encoders:
         p = subprocess.run(base + enc + [f"{name}.mp4"], cwd=work, capture_output=True, text=True,
