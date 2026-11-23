@@ -113,6 +113,8 @@ def can_connect(platform: str) -> bool:
 
 
 def redirect_for(platform: str) -> str:
+    if platform == "tiktok":
+        return f"{config.PUBLIC_URL}/callback/"
     return f"{config.PUBLIC_URL}/oauth/{platform}/callback"
 
 

@@ -374,14 +374,14 @@ def _gemini(model, prompt, schema, timeout=None):
     candidates = []
     if m and m not in ("gemini", "default"):
         candidates.append(m)
-    for std in ("gemini-3.1-flash-lite-preview", "gemini-flash-lite-latest", "gemini-3-flash-preview", "gemini-1.5-flash", "gemini-2.0-flash", "gemini-1.5-pro"):
+    for std in ("gemini-flash-lite-latest", "gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemini-2.5-flash", "gemini-1.5-flash"):
         if std not in candidates:
             candidates.append(std)
 
     body = {"contents": [{"role": "user", "parts": [{"text": prompt}]}],
             "generationConfig": {"temperature": 0.4, "responseMimeType": "application/json", "responseSchema": schema}}
 
-    last_r, last_m = None, m or "gemini-1.5-flash"
+    last_r, last_m = None, m or "gemini-flash-lite-latest"
     for cand in candidates:
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{cand}:generateContent?key={k}"
         r = httpx.post(url, json=body, headers={"x-goog-api-key": k}, timeout=timeout or 120)
@@ -392,8 +392,8 @@ def _gemini(model, prompt, schema, timeout=None):
             sent = int(u.get("promptTokenCount") or 0)
             return json.loads(text), sent, max(0, int(u.get("totalTokenCount") or 0) - sent)
         last_r, last_m = r, cand
-        # Only fallback if 404 (model not found)
-        if r.status_code != 404:
+        # Fallback if 404 (not found), 503 (high demand / unavailable), or 429 (rate-limited)
+        if r.status_code not in (404, 503, 429):
             break
 
     _fail(last_r, last_m)

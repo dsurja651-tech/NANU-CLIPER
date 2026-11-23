@@ -1482,7 +1482,14 @@ def connect_start(platform: str):
         return _back(connect_error=str(e))
 
 
+@app.get("/callback")
+@app.get("/callback/")
+def connect_callback_direct(code: str = "", state: str = "", error: str = "", error_description: str = "", error_reason: str = ""):
+    return connect_callback("tiktok", code=code, state=state, error=error, error_description=error_description, error_reason=error_reason)
+
+
 @app.get("/oauth/{platform}/callback")
+@app.get("/oauth/{platform}/callback/")
 def connect_callback(platform: str, code: str = "", state: str = "", error: str = "", error_description: str = "",
                      error_reason: str = ""):
     if platform not in accounts.PLATFORM_NAMES:

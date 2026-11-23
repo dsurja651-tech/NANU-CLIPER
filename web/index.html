@@ -2771,7 +2771,6 @@ function drawAdd(variant) {
       <div class="ob wide"><div class="ot">Auto-Post to Social Media</div>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px;">
           <label class="ck" style="padding:6px 12px;border-radius:8px;background:var(--muted);border:1px solid var(--line-2);"><input type="checkbox" id="ap_insta" checked> 📸 Instagram Reels</label>
-          <label class="ck" style="padding:6px 12px;border-radius:8px;background:var(--muted);border:1px solid var(--line-2);"><input type="checkbox" id="ap_tiktok" checked> 🎵 TikTok</label>
           <label class="ck" style="padding:6px 12px;border-radius:8px;background:var(--muted);border:1px solid var(--line-2);"><input type="checkbox" id="ap_fb" checked> 📘 Facebook Reels</label>
           <label class="ck" style="padding:6px 12px;border-radius:8px;background:var(--muted);border:1px solid var(--line-2);"><input type="checkbox" id="ap_yt" checked> ▶️ YouTube Shorts</label>
         </div>
@@ -3413,7 +3412,7 @@ function drawCreatorForm() {
         <label class="f">Only auto-post clips scoring at least<input data-k="post_min_score" type="number" min="0" max="100" value="${c.post_min_score}"></label>
         <label class="f">Minutes between posts on one account<input data-k="post_gap_min" type="number" value="${c.post_gap_min}"></label>
         <label class="f">Most posts per account per day<input data-k="daily_cap" type="number" value="${c.daily_cap}"></label>
-        <label class="f">Who can see posts (YouTube, TikTok)<select data-k="privacy">${opts({public:"Public", unlisted:"Unlisted", private:"Private"}, c.privacy)}</select></label>
+        <label class="f">Who can see posts (YouTube, Facebook)<select data-k="privacy">${opts({public:"Public", unlisted:"Unlisted", private:"Private"}, c.privacy)}</select></label>
         <label class="f">Campaign pay per 1,000 views ($)<input data-k="rate_per_1k" type="number" step="0.1" min="0" value="${c.rate_per_1k}"></label>
         <label class="f span">Line added to every post (credit, campaign tag)<input data-k="post_footer" value="${esc(c.post_footer)}" placeholder="Clipped from @streamer"></label></div></div>
     <div class="card danger-card"><h2>Delete this creator</h2><p class="help">Removes ${esc(c.name)}, their settings and every video and clip filed under them. This cannot be undone.</p>
@@ -3456,7 +3455,7 @@ function nextSteps(o) {
   const st = [];
   if (!S.creators.length) st.push(["Add your first creator", "Give each streamer their own workspace, settings and folder.", "newcreator"]);
   if (!S.jobs.length) st.push(["Make your first clips", "Paste a video link in the box above.", "focusurl"]);
-  if (!S.accounts.length) st.push(["Connect a posting account", "YouTube, Instagram or TikTok, in one click.", "go:settings"]);
+  if (!S.accounts.length) st.push(["Connect a posting account", "YouTube, Instagram or Facebook, in one click.", "go:settings"]);
   if (S.creators.length && !S.creators.some(c => c.auto_watch)) st.push(["Turn on auto-record", "Record by itself whenever a creator goes live.", "go:c:" + S.creators[0].id + ":setup"]);
   return st;
 }
