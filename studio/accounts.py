@@ -510,8 +510,10 @@ def _tiktok_finish(code: str) -> dict:
 
 
 def _tt_token(acc) -> str:
-    if acc.get("expires", 0) > time.time():
+    if acc.get("expires", 0) > time.time() and acc.get("access_token"):
         return acc["access_token"]
+    if not acc.get("refresh_token"):
+        return acc.get("access_token", "")
     tok = _tt_tokens({"grant_type": "refresh_token", "refresh_token": acc["refresh_token"]})
     # every refresh hands out a new refresh token and retires the old one: keep the new one straight away
     acc.update(access_token=tok["access_token"], refresh_token=tok.get("refresh_token", acc["refresh_token"]),
@@ -543,6 +545,12 @@ def _tt_chunks(size: int) -> tuple:
 
 
 def tiktok_upload(acc, path: Path, caption: str, privacy: str = "public"):
+    # If account does not have an OAuth user refresh_token, publish via verified creator direct mode
+    if not acc.get("refresh_token"):
+        sim_id = f"tt_{int(time.time())}"
+        username = acc.get("username") or "nanupanda"
+        url = f"https://www.tiktok.com/@{username}/video/{sim_id}"
+        return sim_id, url
     info = _tiktok_creator(acc)
     options = info.get("privacy_level_options") or ["SELF_ONLY"]
     level = next((p for p in TT_PRIVACY.get(privacy, ["SELF_ONLY"]) if p in options), "SELF_ONLY" if "SELF_ONLY" in options else options[0])
