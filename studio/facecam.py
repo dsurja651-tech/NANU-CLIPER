@@ -405,13 +405,14 @@ def detect_face_box(path: str | Path) -> list | None:
             return None
 
         # Cluster detections by spatial position across time:
-        # A streamer's facecam is stationary across frames, whereas in-game characters move/vanish.
+        # A streamer's facecam stays in a consistent region across frames.
+        import math
         clusters = []
         for f in all_faces:
             cx1, cy1 = f[0] + f[2] / 2, f[1] + f[3] / 2
             matched = False
             for c in clusters:
-                if abs(cx1 - c["cx"]) < w * 0.09 and abs(cy1 - c["cy"]) < h * 0.09:
+                if abs(cx1 - c["cx"]) < w * 0.20 and abs(cy1 - c["cy"]) < h * 0.20:
                     c["items"].append(f)
                     c["cx"] = sum(x[0] + x[2] / 2 for x in c["items"]) / len(c["items"])
                     c["cy"] = sum(x[1] + x[3] / 2 for x in c["items"]) / len(c["items"])
@@ -420,8 +421,11 @@ def detect_face_box(path: str | Path) -> list | None:
             if not matched:
                 clusters.append({"cx": cx1, "cy": cy1, "items": [f]})
 
-        # Pick the most persistent face cluster (the true streamer webcam)
-        clusters.sort(key=lambda c: len(c["items"]), reverse=True)
+        # Rank clusters by confidence * face area * persistence to isolate the streamer
+        def _rank(c):
+            return sum(x[4] * math.sqrt(x[2] * x[3]) for x in c["items"])
+
+        clusters.sort(key=_rank, reverse=True)
         best = clusters[0]["items"]
         avg_x = int(sum(x[0] for x in best) / len(best))
         avg_y = int(sum(x[1] for x in best) / len(best))
