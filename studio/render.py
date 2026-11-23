@@ -86,9 +86,7 @@ def install_fonts():
             shutil.copyfile(f, config.FONTS_DIR / f.name)
 
 
-LAYOUTS = {"blur": "Full frame + blurred fill", "zoom": "Zoomed in + blurred fill", "crop": "Fill the screen (centre crop)",
-           "gameplay": "Gameplay fills the screen, facecam in the corner",
-           "split": "Facecam on top, gameplay below, captions in between"}
+LAYOUTS = {"split": "Face Top + Gameplay Below (Captions in Middle)"}
 
 
 def _ts(t):
@@ -118,26 +116,11 @@ def _groups(words, per):
     return out
 
 
-def geometry(src_w, src_h, layout):
-    """Where the video sits in the 1080x1920 frame, and where hook and captions go."""
-    if src_h >= src_w and layout not in ("crop", "split"):
-        layout = "crop"  # already vertical or square: nothing to gain from a blurred fill
-    if layout == "blur":
-        fg_h = min(H, int(round(W * src_h / src_w / 2)) * 2)
-    elif layout == "zoom":
-        fg_h = 1000
-    elif layout == "split":
-        fg_h = 960
-    else:
-        fg_h = H
-    top = (H - fg_h) // 2
-    if layout == "split":
-        # Facecam on top (0-960), Gameplay on bottom (960-1920).
-        # Word-by-word captions positioned right in between at seam (960), hook title at top (130).
-        return layout, fg_h, 130, 960
-    if layout in ("crop", "gameplay"):
-        return layout, fg_h, 300, 1380
-    return layout, fg_h, max(230, top - 190), min(1640, top + fg_h + 180)
+def geometry(src_w, src_h, layout="split"):
+    """Where the video sits in the 1080x1920 frame, and where hook and captions go.
+    Enforces exclusive Split layout: Facecam on top (0-960), Gameplay on bottom (960-1920),
+    Word-by-word captions positioned at the middle seam (960), hook title at top (130)."""
+    return "split", 960, 130, 960
 
 
 def _hook_events(hook, dur, y):
@@ -250,63 +233,40 @@ PIP_MARGIN = 26
 
 
 def _filter(layout, fg_h, facecam=None, src_w=1920, src_h=1080):
-    if layout == "split":
-        # Top panel: ONLY Facecam (1080x960) - zoomed tightly on the face with ZERO gameplay!
-        # Bottom panel: ONLY Gameplay (1080x960) - completely cutting out the facecam!
-        # Middle: Captions placed at y=960 seam
-        if facecam and len(facecam) == 4:
-            fx, fy, fw, fh = (int(v) for v in facecam)
-            if fw > 8 and fh > 8:
-                cx = fx + fw / 2
-                cy = fy + fh / 2
-                # Tight zoom directly on the webcam so the face is large and prominent with 0% game leak
-                crop_h = min(src_h, max(int(fh * 1.12), int(fw * 1.12 * 960 / 1080)))
-                crop_w = int(round(crop_h * 1080 / 960))
-                if crop_w > src_w:
-                    crop_w = src_w
-                    crop_h = int(round(crop_w * 960 / 1080))
-                top_x = max(0, min(src_w - crop_w, int(round(cx - crop_w / 2))))
-                top_y = max(0, min(src_h - crop_h, int(round(cy - crop_h / 2))))
-
-                gw = min(src_w, int(round(src_h * 1080 / 960)))
-                gh = src_h
-                if cx >= src_w / 2:
-                    gx = 0  # Face is on right -> crop gameplay from far left (zero facecam in gameplay)
-                else:
-                    gx = max(0, src_w - gw)  # Face is on left -> crop gameplay from far right (zero facecam in gameplay)
-
-                fc_filter = f"[fc]crop={crop_w}:{crop_h}:{top_x}:{top_y},scale={W}:960:force_original_aspect_ratio=increase,crop={W}:960,setsar=1[top];"
-                game_filter = f"[base]crop={gw}:{gh}:{gx}:0,scale={W}:960:force_original_aspect_ratio=increase,crop={W}:960,setsar=1[bot];"
-                return f"[0:v]fps={config.OUT_FPS},split=2[base][fc];{fc_filter}{game_filter}[top][bot]vstack=inputs=2[v0];"
-        return (f"[0:v]fps={config.OUT_FPS},split=2[t_raw][b_raw];"
-                f"[t_raw]scale={W}:960:force_original_aspect_ratio=increase,crop={W}:960:0:0,setsar=1[top];"
-                f"[b_raw]scale={W}:960:force_original_aspect_ratio=increase,crop={W}:960:(in_w-out_w)/2:in_h-960,setsar=1[bot];"
-                f"[top][bot]vstack=inputs=2[v0];")
-    if layout == "gameplay" and facecam:
-        # The game fills the screen, and the webcam sits in the top corner of it, so a viewer sees
-        # the play and the face at the same time.
+    # Exclusive layout: Top panel ONLY Facecam (1080x960), Bottom panel ONLY Gameplay (1080x960)
+    # Middle: Word-by-word captions at seam y=960
+    if facecam and len(facecam) == 4:
         fx, fy, fw, fh = (int(v) for v in facecam)
         if fw > 8 and fh > 8:
-            pip_h = max(2, int(round(PIP_W * fh / fw)))
-            return (f"[0:v]fps={config.OUT_FPS},split=2[base][fc];"
-                    f"[base]scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},setsar=1[b];"
-                    f"[fc]crop={fw}:{fh}:{fx}:{fy},scale={PIP_W}:{pip_h},setsar=1[p];"
-                    f"[b][p]overlay={W - PIP_W - PIP_MARGIN}:{PIP_MARGIN}[v0];")
-    if layout == "crop" or (layout == "gameplay" and not facecam):
-        return f"[0:v]fps={config.OUT_FPS},scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},setsar=1[v0];"
-    return (f"[0:v]fps={config.OUT_FPS},split=2[a][b];"
-            f"[a]scale=270:480:force_original_aspect_ratio=increase,crop=270:480,boxblur=6:2,"
-            f"scale={W}:{H},eq=brightness=-0.14:saturation=1.15[bg];"
-            f"[b]scale={W}:{fg_h}:force_original_aspect_ratio=increase,crop={W}:{fg_h}[fg];"
-            f"[bg][fg]overlay=0:(H-h)/2,setsar=1[v0];")
+            cx = fx + fw / 2
+            cy = fy + fh / 2
+            # Tight zoom directly on the webcam so the face is large and prominent with 0% game leak
+            crop_h = min(src_h, max(int(fh * 1.12), int(fw * 1.12 * 960 / 1080)))
+            crop_w = int(round(crop_h * 1080 / 960))
+            if crop_w > src_w:
+                crop_w = src_w
+                crop_h = int(round(crop_w * 960 / 1080))
+            top_x = max(0, min(src_w - crop_w, int(round(cx - crop_w / 2))))
+            top_y = max(0, min(src_h - crop_h, int(round(cy - crop_h / 2))))
+
+            gw = min(src_w, int(round(src_h * 1080 / 960)))
+            gh = src_h
+            if cx >= src_w / 2:
+                gx = 0  # Face is on right -> crop gameplay from far left (zero facecam in gameplay)
+            else:
+                gx = max(0, src_w - gw)  # Face is on left -> crop gameplay from far right (zero facecam in gameplay)
+
+            fc_filter = f"[fc]crop={crop_w}:{crop_h}:{top_x}:{top_y},scale={W}:960:force_original_aspect_ratio=increase,crop={W}:960,setsar=1[top];"
+            game_filter = f"[base]crop={gw}:{gh}:{gx}:0,scale={W}:960:force_original_aspect_ratio=increase,crop={W}:960,setsar=1[bot];"
+            return f"[0:v]fps={config.OUT_FPS},split=2[base][fc];{fc_filter}{game_filter}[top][bot]vstack=inputs=2[v0];"
+    return (f"[0:v]fps={config.OUT_FPS},split=2[t_raw][b_raw];"
+            f"[t_raw]scale={W}:960:force_original_aspect_ratio=increase,crop={W}:960:0:0,setsar=1[top];"
+            f"[b_raw]scale={W}:960:force_original_aspect_ratio=increase,crop={W}:960:(in_w-out_w)/2:in_h-960,setsar=1[bot];"
+            f"[top][bot]vstack=inputs=2[v0];")
 
 
 def _hook_y(layout, hook_y, facecam=None):
-    if layout == "split":
-        return 130
-    if layout == "gameplay" and facecam and len(facecam) == 4 and facecam[2] > 8:
-        return PIP_MARGIN + int(round(PIP_W * facecam[3] / facecam[2])) + 32
-    return hook_y
+    return 130
 
 
 _nvenc_ok = None

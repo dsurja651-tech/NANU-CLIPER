@@ -107,7 +107,7 @@ _by_user: dict = {}                       # user -> {job id: job}: listing one p
 _lock = threading.RLock()
 on_clip_ready: list = []   # callbacks (job, clip), run once when a clip first finishes
 
-DEFAULTS = {"max_clips": 6, "min_len": 15, "max_len": 60, "style": "bounce", "layout": "blur", "quality": 720,
+DEFAULTS = {"max_clips": 6, "min_len": 15, "max_len": 60, "style": "glow", "layout": "split", "quality": 720,
             "range_start": None, "range_end": None, "captions": True,
             "top_text": True, "top_text_mode": "viral_hook", "custom_top_text": "",
             "hook_strategy": "story", "detect_emotions": True, "detect_funny": True,
@@ -142,7 +142,7 @@ def clean_options(options) -> dict:
         elif k == "style":
             v = v if v in render.STYLES else DEFAULTS["style"]
         elif k == "layout":
-            v = v if v in render.LAYOUTS else DEFAULTS["layout"]
+            v = "split"
         else:                                    # range_start, range_end: seconds into the video
             v = float(v)
             if not math.isfinite(v) or v < 0:
