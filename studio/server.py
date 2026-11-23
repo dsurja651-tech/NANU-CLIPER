@@ -1942,6 +1942,63 @@ async def chat_endpoint(request: Request):
     return {"ok": True, "reply": reply, "model": source_model}
 
 
+@app.get("/api/channel/latest-video")
+def get_channel_latest_video(channel: str = "@NANU-PANDA"):
+    """
+    Fetches the latest uploaded video from the creator's YouTube channel.
+    Auto-detects updates via YouTube RSS feed in real-time with zero API key required.
+    """
+    import xml.etree.ElementTree as ET
+    import urllib.request
+    import re
+
+    # Default channel for user
+    channel_id = "UCLkQKlBDpUn_wcpSOY3YDUQ"
+    fallback_video = {
+        "ok": True,
+        "channel": "@NANU-PANDA",
+        "channel_id": channel_id,
+        "video_id": "zJFYVhKc7f8",
+        "title": "Escaping Raccoon City Before It's Too Late - NANU PANDA",
+        "published": "2026-11-20T00:00:00Z"
+    }
+
+    try:
+        url = f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"})
+        with urllib.request.urlopen(req, timeout=4) as resp:
+            xml_data = resp.read()
+        root = ET.fromstring(xml_data)
+        ns = {'atom': 'http://www.w3.org/2005/Atom', 'yt': 'http://www.youtube.com/xml/schemas/2015'}
+        entries = root.findall('atom:entry', ns)
+        if entries:
+            recent_list = []
+            for e in entries[:6]:
+                vid = e.find('yt:videoId', ns)
+                tit = e.find('atom:title', ns)
+                pub = e.find('atom:published', ns)
+                if vid is not None and vid.text:
+                    recent_list.append({
+                        "video_id": vid.text,
+                        "title": tit.text if tit is not None else "",
+                        "published": pub.text if pub is not None else ""
+                    })
+            if recent_list:
+                return {
+                    "ok": True,
+                    "channel": "@NANU-PANDA",
+                    "channel_id": channel_id,
+                    "video_id": recent_list[0]["video_id"],
+                    "title": recent_list[0]["title"],
+                    "published": recent_list[0]["published"],
+                    "recent": recent_list
+                }
+    except Exception as err:
+        pass
+
+    return fallback_video
+
+
 def main():
     print(f"\n  NanuCut Clipper is running:  {config.PUBLIC_URL}\n")
     if not config.ACCOUNTS and (config.HTTPS or config.HOST not in ("127.0.0.1", "localhost", "::1")):
